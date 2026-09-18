@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
@@ -18,7 +18,11 @@ class WelcomeController extends Controller
     public function __invoke(): Response|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            $user = Auth::user();
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            }
+            return redirect()->route('evaluator.dashboard');
         }
 
         return Inertia::render('Welcome', [
