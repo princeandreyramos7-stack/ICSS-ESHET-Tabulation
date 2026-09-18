@@ -22,7 +22,7 @@ return [
     'starts_at' => env('CONFERENCE_STARTS_AT', '2026-09-23T08:00:00+08:00'),
     'venue' => env('CONFERENCE_VENUE', 'City of Ilagan, Isabela'),
     'format' => env('CONFERENCE_FORMAT', 'Physical and Online'),
-    'website' => env('CONFERENCE_WEBSITE', 'https://apps.isu-ilagan.edu.ph:8088/conference'),
+    'website' => env('CONFERENCE_WEBSITE', 'https://rdet-isu-ilagan.net/index'),
     'email' => env('CONFERENCE_EMAIL', 'research.ilagan@isu.edu.ph'),
     'phone' => env('CONFERENCE_PHONE', '+63 949 597 4328'),
     'year' => env('CONFERENCE_YEAR', '2026'),

@@ -16,6 +16,7 @@ import {
 } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 import AppLayout from "@/Layouts/AppLayout";
 
 function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
@@ -114,7 +115,15 @@ function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
                             Cancel
                         </Button>
                         <Button type="submit" disabled={processing} className="bg-emerald-700 hover:bg-emerald-800">
-                            {processing ? "Saving..." : isEdit ? "Save changes" : "Add evaluator"}
+                            {processing ? (
+                                <>
+                                    <Spinner /> Saving...
+                                </>
+                            ) : isEdit ? (
+                                "Save changes"
+                            ) : (
+                                "Add evaluator"
+                            )}
                         </Button>
                     </DialogFooter>
                 </form>

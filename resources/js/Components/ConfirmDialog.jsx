@@ -8,6 +8,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/Components/ui/alert-dialog";
+import { Spinner } from "@/Components/ui/spinner";
 
 /**
  * Generic confirmation dialog. `children` renders inside the description
@@ -43,13 +44,19 @@ export default function ConfirmDialog({
                             e.preventDefault();
                             onConfirm?.();
                         }}
-                        className={
+                        className={`inline-flex items-center gap-2 ${
                             destructive
                                 ? "bg-red-600 text-white hover:bg-red-700"
                                 : "bg-emerald-700 text-white hover:bg-emerald-800"
-                        }
+                        }`}
                     >
-                        {processing ? "Please wait..." : confirmLabel}
+                        {processing ? (
+                            <>
+                                <Spinner /> Please wait...
+                            </>
+                        ) : (
+                            confirmLabel
+                        )}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

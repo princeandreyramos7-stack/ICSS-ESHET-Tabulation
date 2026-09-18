@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
     Activity,
@@ -23,6 +23,7 @@ import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent } from "@/Components/ui/card";
 import { Progress } from "@/Components/ui/progress";
+import { Spinner } from "@/Components/ui/spinner";
 import AppLayout from "@/Layouts/AppLayout";
 import { fmtDateTime, fmtScore } from "@/lib/format";
 
@@ -66,6 +67,13 @@ export default function Dashboard({ analytics }) {
         track_status: trackStatus,
     } = analytics;
 
+    const [refreshing, setRefreshing] = useState(false);
+    const refresh = () => {
+        if (refreshing) return;
+        setRefreshing(true);
+        router.reload({ only: ["analytics"], onFinish: () => setRefreshing(false) });
+    };
+
     const overall = progress.expected ? Math.round((progress.submitted / progress.expected) * 100) : 0;
     const lockedCount = progress.tracks.filter((t) => t.is_locked).length;
 
@@ -108,7 +116,11 @@ export default function Dashboard({ analytics }) {
         { name: "Submitted", value: progress.submitted },
         { name: "Pending", value: Math.max(0, progress.expected - progress.submitted) },
     ];
-    const papersPerTrack = progress.tracks.map((t) => ({ name: `T${t.number} ${t.name}`, value: t.papers_count }));
+    const papersPerTrack = progress.tracks.map((t) => ({
+        name: `Track ${t.number}`,
+        title: `Track ${t.number}: ${t.name}`,
+        value: t.papers_count,
+    }));
     const topPaperRows = topPapers.map((p) => ({ ...p, label: `${p.paper_no} (${p.track})` }));
     const evaluatorTendency = evaluators
         .filter((e) => e.average !== null)
@@ -124,9 +136,9 @@ export default function Dashboard({ analytics }) {
         <AppLayout
             breadcrumbs={[{ label: "Dashboard" }]}
             actions={
-                <Button variant="ghost" size="sm" onClick={() => router.reload({ only: ["analytics"] })} title="Refresh">
-                    <RefreshCw />
-                    <span className="hidden sm:inline">Refresh</span>
+                <Button variant="ghost" size="sm" onClick={refresh} disabled={refreshing} title="Refresh">
+                    {refreshing ? <Spinner /> : <RefreshCw />}
+                    <span className="hidden sm:inline">{refreshing ? "Refreshing..." : "Refresh"}</span>
                 </Button>
             }
         >

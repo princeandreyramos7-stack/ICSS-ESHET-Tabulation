@@ -10,6 +10,7 @@ import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 import { Textarea } from "@/Components/ui/textarea";
 import { fmtDateTime, fmtScore } from "@/lib/format";
 
@@ -298,7 +299,15 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                             disabled={processing}
                             className="bg-emerald-700 px-6 hover:bg-emerald-800"
                         >
-                            {alreadySubmitted ? "Update Evaluation" : "Submit Evaluation"}
+                            {processing ? (
+                                <>
+                                    <Spinner /> Saving...
+                                </>
+                            ) : alreadySubmitted ? (
+                                "Update Evaluation"
+                            ) : (
+                                "Submit Evaluation"
+                            )}
                         </Button>
                     )}
                 </div>

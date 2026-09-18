@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 
 export default function UpdateProfileInformationForm() {
     const user = usePage().props.auth.user;
@@ -55,7 +56,13 @@ export default function UpdateProfileInformationForm() {
 
                 <div>
                     <Button type="submit" disabled={processing} className="bg-emerald-700 hover:bg-emerald-800">
-                        Save
+                        {processing ? (
+                            <>
+                                <Spinner /> Saving...
+                            </>
+                        ) : (
+                            "Save"
+                        )}
                     </Button>
                 </div>
             </form>

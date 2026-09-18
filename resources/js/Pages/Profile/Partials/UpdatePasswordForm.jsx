@@ -5,6 +5,7 @@ import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 
 export default function UpdatePasswordForm() {
     const passwordInput = useRef();
@@ -82,7 +83,13 @@ export default function UpdatePasswordForm() {
 
                 <div>
                     <Button type="submit" disabled={processing} className="bg-emerald-700 hover:bg-emerald-800">
-                        Update password
+                        {processing ? (
+                            <>
+                                <Spinner /> Updating...
+                            </>
+                        ) : (
+                            "Update password"
+                        )}
                     </Button>
                 </div>
             </form>

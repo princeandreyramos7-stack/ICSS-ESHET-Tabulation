@@ -173,8 +173,8 @@ export function Donut({ data, colors, centerValue, centerLabel, height = 220, va
     const fmt = valueFormat ?? ((v) => v);
 
     return (
-        <div className="grid items-center gap-4 sm:grid-cols-[1fr_auto]">
-            <div className="relative" style={{ height }}>
+        <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)]">
+            <div className="relative min-w-0" style={{ height }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
@@ -198,7 +198,7 @@ export function Donut({ data, colors, centerValue, centerLabel, height = 220, va
                                 const p = payload[0];
                                 return (
                                     <div className="rounded-md border border-gray-200 bg-white px-3 py-2 text-xs shadow-md">
-                                        <p className="font-semibold text-gray-900">{p.name}</p>
+                                        <p className="font-semibold text-gray-900">{p.payload?.title ?? p.name}</p>
                                         <p className="text-gray-600">
                                             {fmt(p.value)} ({Math.round((p.value / total) * 100)}%)
                                         </p>
@@ -215,11 +215,11 @@ export function Donut({ data, colors, centerValue, centerLabel, height = 220, va
                     )}
                 </div>
             </div>
-            <ul className="space-y-1.5 text-sm">
+            <ul className="min-w-0 space-y-1.5 text-sm">
                 {rows.map((d, i) => (
-                    <li key={d.name} className="flex items-center gap-2">
+                    <li key={d.name} className="flex min-w-0 items-center gap-2">
                         <span className="size-3 shrink-0 rounded-sm" style={{ background: colorFor(d, i) }} aria-hidden="true" />
-                        <span className="min-w-0 flex-1 truncate text-gray-700" title={d.name}>
+                        <span className="min-w-0 flex-1 truncate text-gray-700" title={d.title ?? d.name}>
                             {d.name}
                         </span>
                         <span className="shrink-0 font-semibold tabular-nums text-gray-900">{fmt(d.value)}</span>

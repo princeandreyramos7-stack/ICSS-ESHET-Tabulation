@@ -6,6 +6,7 @@ import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 import ConferenceLogo from "@/Components/Brand/ConferenceLogo";
 import GuestLayout from "@/Layouts/GuestLayout";
 
@@ -96,7 +97,13 @@ export default function Login({ status }) {
                     disabled={processing}
                     className="h-11 w-full bg-amber-400 text-base font-bold text-emerald-950 hover:bg-amber-300"
                 >
-                    {processing ? "Signing in..." : "Sign in"}
+                    {processing ? (
+                        <>
+                            <Spinner /> Signing in...
+                        </>
+                    ) : (
+                        "Sign in"
+                    )}
                 </Button>
             </form>
 

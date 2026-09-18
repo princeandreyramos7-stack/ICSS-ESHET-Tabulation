@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import BrandBackdrop from "@/Components/Brand/BrandBackdrop";
 import ConferenceLogo from "@/Components/Brand/ConferenceLogo";
 import DeveloperCredit from "@/Components/Brand/DeveloperCredit";
+import PageLoader from "@/Components/PageLoader";
 import Eyebrow from "@/Components/Brand/Eyebrow";
 import LogoTrio from "@/Components/Brand/LogoTrio";
 import { Toaster } from "@/Components/ui/sonner";
@@ -88,6 +89,7 @@ export default function GuestLayout({ children }) {
                 <DeveloperCredit tone="dark" compact />
             </div>
 
+            <PageLoader label="Please wait..." />
             <Toaster theme="light" position="top-center" offset={{ top: 72 }} mobileOffset={{ top: 72 }} richColors closeButton />
         </BrandBackdrop>
     );

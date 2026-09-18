@@ -16,6 +16,7 @@ import {
 } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Spinner } from "@/Components/ui/spinner";
 import { Select } from "@/Components/ui/select";
 import AppLayout from "@/Layouts/AppLayout";
 
@@ -166,7 +167,15 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
                             Cancel
                         </Button>
                         <Button type="submit" disabled={processing} className="bg-emerald-700 hover:bg-emerald-800">
-                            {processing ? "Saving..." : isEdit ? "Save changes" : "Add paper"}
+                            {processing ? (
+                                <>
+                                    <Spinner /> Saving...
+                                </>
+                            ) : isEdit ? (
+                                "Save changes"
+                            ) : (
+                                "Add paper"
+                            )}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import { AppSidebar } from "@/Components/AppSidebar";
 import Breadcrumbs from "@/Components/Breadcrumbs";
+import PageLoader from "@/Components/PageLoader";
 import { Separator } from "@/Components/ui/separator";
 import {
     SidebarInset,
@@ -63,6 +64,7 @@ export default function AppLayout({ title, breadcrumbs, actions, children }) {
                     </div>
                 </main>
             </SidebarInset>
+            <PageLoader />
             <Toaster
                 theme="light"
                 position="top-right"

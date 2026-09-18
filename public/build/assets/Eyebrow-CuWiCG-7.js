@@ -1,1 +1,0 @@
-import{j as r}from"./app-L8KW5w0q.js";function s({children:t,className:e=""}){return r.jsx("p",{className:`text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400 ${e}`,children:t})}export{s as E};
