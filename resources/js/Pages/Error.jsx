@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from "@inertiajs/react";
+﻿import { Head, Link, usePage } from "@inertiajs/react";
 import { ArrowLeft, Home } from "lucide-react";
 
 import BrandBackdrop from "@/Components/Brand/BrandBackdrop";
@@ -19,7 +19,7 @@ const MESSAGES = {
 export default function Error({ status }) {
     const { auth } = usePage().props;
     const [title, text] = MESSAGES[status] ?? ["Error", "An unexpected error occurred."];
-    const homeHref = auth?.user ? route("dashboard") : route("welcome");
+    const homeHref = auth?.user ? (auth.user.role === "admin" ? route("admin.dashboard") : route("evaluator.dashboard")) : route("welcome");
 
     return (
         <BrandBackdrop className="flex items-center justify-center p-6">
