@@ -1,0 +1,50 @@
+﻿import { Link, usePage } from "@inertiajs/react";
+import {
+    ClipboardList,
+    FileText,
+    LayoutDashboard,
+    Lock,
+    Printer,
+    Trophy,
+    Users,
+} from "lucide-react";
+
+import ConferenceLogo from "@/Components/Brand/ConferenceLogo";
+import { NavUser } from "@/Components/nav-user";
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+} from "@/Components/ui/sidebar";
+
+/** Small numbered badge so tracks stay distinguishable when the sidebar is collapsed. */
+function TrackBadge({ number, active }) {
+    return (
+        <span
+            aria-hidden="true"
+            className={`flex size-4 shrink-0 items-center justify-center rounded text-[10px] font-bold leading-none ${
+                active ? "bg-emerald-950 text-amber-300" : "bg-white/15 text-emerald-50"
+            }`}
+        >
+            {number}
+        </span>
+    );
+}
+
+function NavGroup({ label, items }) {
+    if (!items.length) return null;
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel className="text-amber-300">
+                {label}
+            </SidebarGroupLabel>
+            <SidebarMenu>
+                {items.map((item) => (
+                    <SidebarMenuItem key={item.href}>

@@ -152,7 +152,7 @@ export function AppSidebar(props) {
                             tooltip={conference?.short_name}
                             className="bg-amber-400 text-emerald-950 hover:bg-amber-300 hover:text-emerald-950 group-data-[collapsible=icon]:justify-center"
                         >
-                            <Link href={route("dashboard")}>
+                            <Link href={route(isAdmin ? "admin.dashboard" : "evaluator.dashboard")}>
                                 <ConferenceLogo className="size-8" ring={false} />
                                 <span className="grid flex-1 text-left leading-tight">
                                     <span className="truncate text-sm font-bold">{conference?.short_name}</span>
