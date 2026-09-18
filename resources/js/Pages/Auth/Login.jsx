@@ -6,6 +6,7 @@ import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { PasswordInput } from "@/Components/ui/password-input";
 import { Spinner } from "@/Components/ui/spinner";
 import ConferenceLogo from "@/Components/Brand/ConferenceLogo";
 import GuestLayout from "@/Layouts/GuestLayout";
@@ -70,10 +71,10 @@ export default function Login({ status }) {
 
                 <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input
+                    <PasswordInput
                         id="password"
-                        type="password"
                         required
+                        placeholder="Enter your password"
                         value={data.password}
                         autoComplete="current-password"
                         onChange={(e) => setData("password", e.target.value)}

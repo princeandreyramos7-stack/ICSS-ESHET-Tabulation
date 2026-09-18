@@ -3,8 +3,8 @@ import { useForm } from "@inertiajs/react";
 
 import InputError from "@/Components/InputError";
 import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { PasswordInput } from "@/Components/ui/password-input";
 import { Spinner } from "@/Components/ui/spinner";
 
 export default function UpdatePasswordForm() {
@@ -45,11 +45,10 @@ export default function UpdatePasswordForm() {
             <form onSubmit={submit} className="mt-5 grid gap-4">
                 <div className="grid gap-1.5">
                     <Label htmlFor="current_password">Current password</Label>
-                    <Input
+                    <PasswordInput
                         id="current_password"
                         ref={currentPasswordInput}
-                        type="password"
-                        value={data.current_password}
+                                                value={data.current_password}
                         onChange={(e) => setData("current_password", e.target.value)}
                         autoComplete="current-password"
                     />
@@ -58,11 +57,10 @@ export default function UpdatePasswordForm() {
 
                 <div className="grid gap-1.5">
                     <Label htmlFor="password">New password</Label>
-                    <Input
+                    <PasswordInput
                         id="password"
                         ref={passwordInput}
-                        type="password"
-                        value={data.password}
+                                                value={data.password}
                         onChange={(e) => setData("password", e.target.value)}
                         autoComplete="new-password"
                     />
@@ -71,10 +69,9 @@ export default function UpdatePasswordForm() {
 
                 <div className="grid gap-1.5">
                     <Label htmlFor="password_confirmation">Confirm new password</Label>
-                    <Input
+                    <PasswordInput
                         id="password_confirmation"
-                        type="password"
-                        value={data.password_confirmation}
+                                                value={data.password_confirmation}
                         onChange={(e) => setData("password_confirmation", e.target.value)}
                         autoComplete="new-password"
                     />

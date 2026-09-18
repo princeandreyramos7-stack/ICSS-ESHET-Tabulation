@@ -90,7 +90,16 @@ export default function GuestLayout({ children }) {
             </div>
 
             <PageLoader label="Please wait..." />
-            <Toaster theme="light" position="top-center" offset={{ top: 72 }} mobileOffset={{ top: 72 }} richColors closeButton />
+            <Toaster
+                theme="light"
+                position="top-right"
+                offset={{ top: 16, right: 16 }}
+                mobileOffset={{ top: 12, left: 12, right: 12 }}
+                richColors
+                closeButton
+                expand={false}
+                visibleToasts={3}
+            />
         </BrandBackdrop>
     );
 }

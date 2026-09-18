@@ -25,13 +25,13 @@ class AdminUserSeeder extends Seeder
 
         $adminRole = Role::firstOrCreate(['name' => User::ROLE_ADMIN]);
 
-        $email = env('ADMIN_EMAIL', 'admin@conference.local');
+        $email = env('ADMIN_EMAIL', 'piton@gmail.com');
 
         $user = User::firstOrCreate(
             ['email' => $email],
             [
                 'name' => env('ADMIN_NAME', 'Administrator'),
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!')),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'piton123')),
                 'email_verified_at' => Carbon::now(),
             ]
         );
