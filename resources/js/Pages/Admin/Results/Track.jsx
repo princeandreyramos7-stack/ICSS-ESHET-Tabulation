@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 import { Head, Link, router } from "@inertiajs/react";
 import { toast } from "sonner";
-import { Eye, Lock } from "lucide-react";
+import { Download, Eye, Lock } from "lucide-react";
 
 import EvaluatorSignatures from "@/Components/EvaluatorSignatures";
 import PrintButton from "@/Components/PrintButton";
@@ -42,7 +42,17 @@ export default function Track({ result }) {
                 { label: "Results" },
                 { label: `Track ${track.number}` },
             ]}
-            actions={<PrintButton label="Print sheet" />}
+            actions={
+                <>
+                    <Button asChild variant="default" size="sm">
+                        <a href={route('admin.results.track.pdf', track.id)}>
+                            <Download />
+                            Download PDF
+                        </a>
+                    </Button>
+                    <PrintButton label="Print sheet" />
+                </>
+            }
         >
             <Head title={`Results Track ${track.number}`} />
 

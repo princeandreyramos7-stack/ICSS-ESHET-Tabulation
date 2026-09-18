@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Paper;
 use App\Models\Track;
 use App\Services\ResultService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class ResultController extends Controller
 {
@@ -22,6 +24,25 @@ class ResultController extends Controller
     }
 
     /**
+     * Download per-track result sheet as PDF.
+     */
+    public function trackPdf(Track $track, ResultService $results): HttpResponse
+    {
+        $result = $results->forTrack($track);
+        
+        $pdf = Pdf::loadView('pdf.results.track', ['result' => $result])
+            ->setPaper('a4', 'landscape')
+            ->setOption('margin-top', 10)
+            ->setOption('margin-bottom', 10)
+            ->setOption('margin-left', 10)
+            ->setOption('margin-right', 10);
+
+        $filename = 'Track-' . $result['track']['number'] . '-Results-' . now()->format('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
+    }
+
+    /**
      * Printable summary of every track plus a cross-track leaderboard.
      */
     public function overall(ResultService $results): Response
@@ -29,6 +50,25 @@ class ResultController extends Controller
         return Inertia::render('Admin/Results/Overall', [
             'result' => $results->overall(),
         ]);
+    }
+
+    /**
+     * Download overall results as PDF.
+     */
+    public function overallPdf(ResultService $results): HttpResponse
+    {
+        $result = $results->overall();
+        
+        $pdf = Pdf::loadView('pdf.results.overall', ['result' => $result])
+            ->setPaper('a4', 'portrait')
+            ->setOption('margin-top', 10)
+            ->setOption('margin-bottom', 10)
+            ->setOption('margin-left', 10)
+            ->setOption('margin-right', 10);
+
+        $filename = 'Overall-Results-' . now()->format('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 
     /**
@@ -47,5 +87,32 @@ class ResultController extends Controller
                 'label' => $paper->track->label,
             ],
         ]);
+    }
+
+    /**
+     * Download per-paper breakdown as PDF.
+     */
+    public function paperPdf(Paper $paper, ResultService $results): HttpResponse
+    {
+        $paper->load('track');
+        
+        $result = $results->forPaper($paper);
+        $track = [
+            'id' => $paper->track->id,
+            'number' => $paper->track->number,
+            'name' => $paper->track->name,
+            'label' => $paper->track->label,
+        ];
+        
+        $pdf = Pdf::loadView('pdf.results.paper', ['result' => $result, 'track' => $track])
+            ->setPaper('a4', 'portrait')
+            ->setOption('margin-top', 10)
+            ->setOption('margin-bottom', 10)
+            ->setOption('margin-left', 10)
+            ->setOption('margin-right', 10);
+
+        $filename = 'Paper-' . $result['paper']['paper_no'] . '-Breakdown-' . now()->format('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }

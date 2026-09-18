@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EvaluatorController;
@@ -67,8 +67,11 @@ Route::middleware(['auth', 'role:' . User::ROLE_ADMIN])
         Route::patch('tracks/{track}/lock', [AdminTrackController::class, 'toggleLock'])->name('tracks.lock');
 
         Route::get('results/overall', [ResultController::class, 'overall'])->name('results.overall');
+        Route::get('results/overall/pdf', [ResultController::class, 'overallPdf'])->name('results.overall.pdf');
         Route::get('results/tracks/{track}', [ResultController::class, 'track'])->name('results.track');
+        Route::get('results/tracks/{track}/pdf', [ResultController::class, 'trackPdf'])->name('results.track.pdf');
         Route::get('results/papers/{paper}', [ResultController::class, 'paper'])->name('results.paper');
+        Route::get('results/papers/{paper}/pdf', [ResultController::class, 'paperPdf'])->name('results.paper.pdf');
     });
 
 /*

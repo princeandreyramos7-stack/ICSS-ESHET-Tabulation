@@ -1,11 +1,12 @@
-import { useRef } from "react";
+﻿import { useRef } from "react";
 import { Head, Link } from "@inertiajs/react";
-import { Lock, Trophy } from "lucide-react";
+import { Download, Lock, Trophy } from "lucide-react";
 
 import EvaluatorSignatures from "@/Components/EvaluatorSignatures";
 import PrintButton from "@/Components/PrintButton";
 import PrintSheetHeader from "@/Components/PrintSheetHeader";
 import { Badge } from "@/Components/ui/badge";
+import { Button } from "@/Components/ui/button";
 import AppLayout from "@/Layouts/AppLayout";
 import { useFitToPage } from "@/hooks/use-fit-to-page";
 import { fmtScore, ordinal } from "@/lib/format";
@@ -26,7 +27,17 @@ export default function Overall({ result }) {
                 { label: "Results" },
                 { label: "Overall" },
             ]}
-            actions={<PrintButton label="Print sheet" />}
+            actions={
+                <>
+                    <Button asChild variant="default" size="sm">
+                        <a href={route('admin.results.overall.pdf')}>
+                            <Download />
+                            Download PDF
+                        </a>
+                    </Button>
+                    <PrintButton label="Print sheet" />
+                </>
+            }
         >
             <Head title="Overall Results" />
 
