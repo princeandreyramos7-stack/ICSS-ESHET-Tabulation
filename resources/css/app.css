@@ -211,3 +211,16 @@ main[aria-busy="true"] {
         scroll-behavior: auto !important;
     }
 }
+
+/* Hide the browser's own password reveal/clear controls (Edge, IE, Safari autofill)
+   so only the app's show/hide toggle appears. */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="text"]::-ms-reveal,
+input[type="text"]::-ms-clear {
+    display: none;
+}
+input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+}
