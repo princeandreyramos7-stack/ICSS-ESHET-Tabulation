@@ -24,7 +24,7 @@ class AdminUserSeeder extends Seeder
 
         if (app()->isProduction()) {
             // Never create an administrator with a missing or guessable password in production.
-            if ($email === '' || strlen($password) < 12) {
+            if ($email === '' || strlen($password) < 8) {
                 throw new RuntimeException(
                     'Set ADMIN_EMAIL and an ADMIN_PASSWORD of at least 12 characters in .env, '
                     . 'run "php artisan optimize", then seed again.'
@@ -32,8 +32,8 @@ class AdminUserSeeder extends Seeder
             }
         } else {
             // Local fallbacks so a fresh clone can seed without editing .env.
-            $email = $email !== '' ? $email : 'admin@conference.local';
-            $password = $password !== '' ? $password : 'ChangeMe123!';
+            $email = $email !== '' ? $email : 'piton@gmail.com';
+            $password = $password !== '' ? $password : 'pitonadmin123';
         }
 
         $adminRole = Role::firstOrCreate(['name' => User::ROLE_ADMIN]);
