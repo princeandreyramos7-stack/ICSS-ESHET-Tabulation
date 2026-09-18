@@ -1,4 +1,4 @@
-import { Link, usePage } from "@inertiajs/react";
+﻿import { Link, usePage } from "@inertiajs/react";
 import {
     ClipboardList,
     FileText,
@@ -168,7 +168,7 @@ export function AppSidebar(props) {
             <SidebarContent>
                 <NavGroup label="Menu" items={menu} />
                 <NavGroup
-                    label={isAdmin ? "Results by Track" : "Evaluate by Track"}
+                    label={isAdmin ? "Results by Track" : "Evaluate"}
                     items={trackItems}
                 />
             </SidebarContent>

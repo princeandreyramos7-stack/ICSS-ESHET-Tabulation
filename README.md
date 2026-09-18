@@ -43,12 +43,86 @@ An evaluator's total for a paper is the sum of the five ratings. The paper's **a
 4. When a track's presentations are done, the admin locks it from **Tracks & Locks**. Locked tracks reject any further changes.
 5. Admin prints the track result sheet (papers x evaluators, average, rank, signature block) or a per-paper breakdown with comments.
 
+## Initial Setup & Security
+
+### Database Seeding
+
+After configuring your `.env` file with database credentials, seed the database with all required data:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+This will create:
+- User roles (Administrator, Evaluator)
+- Default administrator account
+- 7 conference tracks
+- 5 evaluation criteria
+
+### Default Administrator Credentials
+
+**⚠️ IMPORTANT SECURITY NOTICE**
+
+The seeder creates a default administrator account with the following credentials:
+
+- **Email:** `Piton@gmail.com`
+- **Password:** `piton_admin@2025`
+
+**You MUST change this password immediately after your first login.**
+
+### Changing the Administrator Password
+
+1. Sign in to the application using the default credentials above
+2. Look for **My account** in the sidebar footer
+3. Enter your current password
+4. Set a strong new password (minimum 8 characters)
+5. Confirm the new password
+6. Click **Update Password**
+
+### Changing Evaluator Passwords
+
+Evaluators cannot change their own passwords. As the administrator:
+
+1. Navigate to the **Evaluators** page from the sidebar
+2. Click **Edit** next to the evaluator whose password you want to reset
+3. Type a new password in the password field
+4. Click **Save**
+5. Share the new credentials with the evaluator securely
+
+### Production Security Best Practices
+
+When deploying to production:
+
+1. **Change the admin password immediately** - Use a strong, unique password
+2. **Use a production database** - MySQL or PostgreSQL recommended (SQLite only for small single-server setups)
+3. **Enable HTTPS** - Set `SESSION_SECURE_COOKIE=true` in `.env`
+4. **Disable debug mode** - Set `APP_DEBUG=false` and `APP_ENV=production`
+5. **Secure your environment file** - Ensure `.env` is not publicly accessible and contains strong credentials
+6. **Run the preflight check** - Use `php artisan app:preflight` to verify production readiness
+7. **Limit login attempts** - Built-in rate limiting (10 attempts per minute per IP)
+8. **Monitor access logs** - Check Laravel logs regularly for suspicious activity
+9. **Keep dependencies updated** - Regularly run `composer update` and `npm update` for security patches
+10. **Backup regularly** - Implement automated backups of your database
+
+### Security Features
+
+This application includes:
+
+- No public registration (admin creates all accounts)
+- No email password reset (admin resets evaluator passwords)
+- Rate-limited login attempts
+- Server-side validation of all ratings
+- Role-based access control (evaluators only see their assigned track)
+- Track locking prevents modifications after presentations
+- Security headers (nosniff, frame-ancestors, HSTS)
+- Laravel Pulse disabled by default (admin-only when enabled)
+
 ## Local setup
 
 ```bash
 composer install
 npm install
-cp .env.example .env          # then edit DB_* and ADMIN_* values
+cp .env.example .env          # then edit DB_* values
 php artisan key:generate
 php artisan migrate --seed    # roles, admin account, 7 tracks, 5 criteria
 npm run dev                   # in one terminal
@@ -68,7 +142,6 @@ It verifies debug mode, HTTPS, secure cookies, session lifetime, database and mi
 1. Set these in `.env` on the server:
    - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`
    - `DB_*` for MySQL (SQLite is fine only for small single-server setups)
-   - `ADMIN_EMAIL` and a strong `ADMIN_PASSWORD` **before** seeding
    - `SESSION_SECURE_COOKIE=true` when served over HTTPS
    - `CONFERENCE_*` to change the branding without touching code
 2. Run:
@@ -79,14 +152,13 @@ It verifies debug mode, HTTPS, secure cookies, session lifetime, database and mi
    php artisan migrate --force --seed
    php artisan optimize
    ```
-3. Point the web server document root to `public/`.
-4. Sign in as the admin, add evaluators and papers, then share evaluator credentials.
+3. **Important:** Sign in immediately with the default credentials (`Piton@gmail.com` / `piton_admin@2025`) and change the admin password via **My account** in the sidebar footer.
+4. Point the web server document root to `public/`.
+5. Add evaluators and papers from the admin dashboard, then share evaluator credentials securely.
 
 The app trusts the reverse proxy headers so links are generated with `https` behind hosting panels or Cloudflare.
 
-### Changing the admin password
-
-Sign in as the admin and use **My account** in the sidebar footer. Evaluator passwords are reset by the admin from the Evaluators page (Edit, then type a new password).
+The app trusts the reverse proxy headers so links are generated with `https` behind hosting panels or Cloudflare.
 
 ## Security notes
 

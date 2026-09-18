@@ -114,6 +114,6 @@ the session starts, i.e. the web process cannot use the database. Check, in this
 ## 4. "This password does not use the Bcrypt algorithm"
 
 The stored password of that user is not a bcrypt hash (typically a row edited by hand in phpMyAdmin).
-`php artisan db:seed --class=AdminUserSeeder --force` now detects this for `ADMIN_EMAIL` and resets the hash to
-`ADMIN_PASSWORD`. Never paste passwords into the `users` table directly; create or reset accounts through the
-application or through the seeder.
+Running `php artisan db:seed --force` will reset the admin account (email: `Piton@gmail.com`) to use a 
+properly bcrypt-hashed password. Never paste passwords into the `users` table directly; create or reset 
+accounts through the application or through the seeder.

@@ -27,14 +27,6 @@ return [
     'phone' => env('CONFERENCE_PHONE', '+63 949 597 4328'),
     'year' => env('CONFERENCE_YEAR', '2026'),
 
-    // First administrator account, created once by AdminUserSeeder. Read through
-    // config() so it still works after `php artisan optimize` caches the config.
-    'admin' => [
-        'name' => env('ADMIN_NAME', 'Administrator'),
-        'email' => env('ADMIN_EMAIL'),
-        'password' => env('ADMIN_PASSWORD'),
-    ],
-
     // Organization that built the system; shown as a "Developed by" credit on public pages.
     'developer' => [
         'name' => env('DEVELOPER_NAME', 'Philippine Information Technology of the North'),
