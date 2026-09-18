@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Auth;
 
@@ -24,8 +24,13 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        // /dashboard decides where each role lands.
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect based on user role
+        $user = Auth::user();
+        $intended = $user->isAdmin() 
+            ? route('admin.dashboard', absolute: false)
+            : route('evaluator.dashboard', absolute: false);
+
+        return redirect()->intended($intended);
     }
 
     public function destroy(Request $request): RedirectResponse
