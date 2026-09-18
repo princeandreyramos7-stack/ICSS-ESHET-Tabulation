@@ -2,39 +2,20 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // Define roles
-        $roles = [
-            'admin' => [
-                'manage all',
-            ],
-            'judge' => [
-                'moderator'
-            ]
-        ];
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach ($roles as $roleName => $permissions) {
-            // Create or get role
-            $role = Role::firstOrCreate(['name' => $roleName]);
+        Role::firstOrCreate(['name' => User::ROLE_ADMIN]);
+        Role::firstOrCreate(['name' => User::ROLE_EVALUATOR]);
 
-            foreach ($permissions as $permissionName) {
-                // Create or get permission
-                $permission = Permission::firstOrCreate(['name' => $permissionName]);
-
-                // Assign permission to role
-                if (!$role->hasPermissionTo($permission)) {
-                    $role->givePermissionTo($permission);
-                }
-            }
-        }
-
-        $this->command->info("✅ Roles and Permissions seeded successfully!");
+        $this->command?->info('Roles seeded: admin, evaluator');
     }
 }

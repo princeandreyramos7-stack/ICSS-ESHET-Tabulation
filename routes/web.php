@@ -1,69 +1,103 @@
 <?php
 
-use App\Http\Controllers\Page\AdminCategoryController;
-use App\Http\Controllers\Page\AdminUserController;
-use App\Http\Controllers\Page\CandidateController;
-use App\Http\Controllers\Page\JudgeCategoryController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EvaluatorController;
+use App\Http\Controllers\Admin\PaperController;
+use App\Http\Controllers\Admin\ResultController;
+use App\Http\Controllers\Admin\TrackController as AdminTrackController;
+use App\Http\Controllers\Evaluator\DashboardController as EvaluatorDashboardController;
+use App\Http\Controllers\Evaluator\EvaluationController;
+use App\Http\Controllers\Evaluator\WorkspaceController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\WelcomeController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Auth/Login');
-});
+/*
+|--------------------------------------------------------------------------
+| Entry points
+|--------------------------------------------------------------------------
+*/
 
+Route::get('/', WelcomeController::class)->name('welcome');
+
+// Role-aware landing page. Breeze and tests reference this name.
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    /** @var User $user */
+    $user = Auth::user();
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    Route::resource('user', AdminUserController::class);
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+    if ($user->isEvaluator()) {
+        return redirect()->route('evaluator.dashboard');
+    }
 
-    Route::get('dashboard', [AdminCategoryController::class, 'getDashboard'])->name('admin.dashboard');
+    Auth::logout();
 
+    return redirect()->route('login')->withErrors([
+        'email' => 'Your account has no role assigned. Please contact the administrator.',
+    ]);
+})->middleware('auth')->name('dashboard');
 
+/*
+|--------------------------------------------------------------------------
+| Administrator
+|--------------------------------------------------------------------------
+*/
 
-    Route::get('productionnumber', [AdminCategoryController::class, 'getProductionNumber'])->name('admin.productionnumber');
-    Route::get('jean', [AdminCategoryController::class, 'getJeanWear'])->name('admin.jean');
-    Route::get('festival', [AdminCategoryController::class, 'getFestivalAttire'])->name('admin.festival');
-    Route::get('casual', [AdminCategoryController::class, 'getCasualWear'])->name('admin.casual');
-    Route::get('swimsuit', [AdminCategoryController::class, 'getSwimsuit'])->name('admin.swimsuit');
-    Route::get('talent', [AdminCategoryController::class, 'getTalent'])->name('admin.talent');
-    Route::get('gown', [AdminCategoryController::class, 'getGown'])->name('admin.gown');
-    Route::get('qa', [AdminCategoryController::class, 'getQA'])->name('admin.qa');
-    Route::get('beauty', [AdminCategoryController::class, 'getBeauty'])->name('admin.beauty');
+Route::middleware(['auth', 'role:' . User::ROLE_ADMIN])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
 
-    Route::get('beautyfinal', [AdminCategoryController::class, 'getBeautyFinal'])->name('admin.beautyfinal');
-    Route::get('qafinal', [AdminCategoryController::class, 'getQAFinal'])->name('admin.qafinal');
+        Route::get('papers', [PaperController::class, 'index'])->name('papers.index');
+        Route::post('papers', [PaperController::class, 'store'])->name('papers.store');
+        Route::put('papers/{paper}', [PaperController::class, 'update'])->name('papers.update');
+        Route::delete('papers/{paper}', [PaperController::class, 'destroy'])->name('papers.destroy');
 
-    Route::get('tallyprelim', [AdminCategoryController::class, 'getTallyPrelim'])->name('admin.tallyprelim');
-    Route::get('tallyfinal', [AdminCategoryController::class, 'getTallyFinal'])->name('admin.tallyfinal');
+        Route::get('evaluators', [EvaluatorController::class, 'index'])->name('evaluators.index');
+        Route::post('evaluators', [EvaluatorController::class, 'store'])->name('evaluators.store');
+        Route::put('evaluators/{evaluator}', [EvaluatorController::class, 'update'])->name('evaluators.update');
+        Route::delete('evaluators/{evaluator}', [EvaluatorController::class, 'destroy'])->name('evaluators.destroy');
 
-    Route::get('candidate', [CandidateController::class, 'getCandidates'])->name('admin.candidate.index');
-    Route::get('settopfive/{candidate}', [CandidateController::class, 'setTopFive'])->name('admin.settopfive');
-    Route::get('settono/{candidate}', [CandidateController::class, 'setToNo'])->name('admin.settono');
-});
+        Route::get('tracks', [AdminTrackController::class, 'index'])->name('tracks.index');
+        Route::patch('tracks/{track}/lock', [AdminTrackController::class, 'toggleLock'])->name('tracks.lock');
 
-Route::middleware(['auth', 'role:judge'])->prefix('judge')->group(function () {
+        Route::get('results/overall', [ResultController::class, 'overall'])->name('results.overall');
+        Route::get('results/tracks/{track}', [ResultController::class, 'track'])->name('results.track');
+        Route::get('results/papers/{paper}', [ResultController::class, 'paper'])->name('results.paper');
+    });
 
-    Route::get('productionnumber', [JudgeCategoryController::class, 'getProductionNumber'])->name('productionnumber');
-    Route::get('jeanswear', [JudgeCategoryController::class, 'getJeansWear'])->name('jeanswear');
-    Route::get('casualwear', [JudgeCategoryController::class, 'getCasualWear'])->name('casualwear');
-    Route::get('beauty', [JudgeCategoryController::class, 'getBeauty'])->name('beauty');
-    Route::get('festivalattire', [JudgeCategoryController::class, 'getFestivalAttire'])->name('festivalattire');
-    Route::get('gown', [JudgeCategoryController::class, 'getGown'])->name('gown');
-    Route::get('qanda', [JudgeCategoryController::class, 'getQandA'])->name('qanda');
-    Route::get('swimsuit', [JudgeCategoryController::class, 'getSwimsuit'])->name('swimsuit');
-    Route::get('talent', [JudgeCategoryController::class, 'getTalent'])->name('talent');
-    Route::get('beautyfinal', [JudgeCategoryController::class, 'getBeautyFinal'])->name('beautyfinal');
-    Route::get('qafinal', [JudgeCategoryController::class, 'getQAFinal'])->name('qafinal');
-});
+/*
+|--------------------------------------------------------------------------
+| Evaluator (panel member)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:' . User::ROLE_EVALUATOR])
+    ->prefix('evaluator')
+    ->name('evaluator.')
+    ->group(function () {
+        Route::get('dashboard', EvaluatorDashboardController::class)->name('dashboard');
+        // Single-page scoring workspace; ?track=&paper= select the position.
+        Route::get('evaluate', WorkspaceController::class)->name('workspace');
+        Route::post('papers/{paper}/evaluate', [EvaluationController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('papers.evaluate.store');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Account
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';

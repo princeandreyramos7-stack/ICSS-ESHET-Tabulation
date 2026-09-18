@@ -2,35 +2,44 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use RuntimeException;
+use Spatie\Permission\Models\Role;
 
 class AdminUserSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     *
-     * @return void
+     * Creates the initial administrator account.
+     * Credentials come from .env (ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD)
+     * so production never ships with a known default password.
      */
-    public function run()
+    public function run(): void
     {
-        // Create the admin role if it doesn't exist
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        // Never create an administrator with a guessable default password in production.
+        if (app()->isProduction() && (! env('ADMIN_EMAIL') || ! env('ADMIN_PASSWORD') || strlen((string) env('ADMIN_PASSWORD')) < 12)) {
+            throw new RuntimeException('Set ADMIN_EMAIL and a strong ADMIN_PASSWORD (12+ characters) in .env before seeding in production.');
+        }
 
-        // Create the user and assign the admin role
-        $user = User::create([
-            'name' => 'User',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('123123123'), // Use a secure password
-            'email_verified_at' => Carbon::now(), // Automatically verify the email
-        ]);
+        $adminRole = Role::firstOrCreate(['name' => User::ROLE_ADMIN]);
 
-        // Assign the admin role to the user
-        $user->assignRole($adminRole);
+        $email = env('ADMIN_EMAIL', 'admin@conference.local');
 
-        $this->command->info("✅ Admin Users seeded successfully!");
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            [
+                'name' => env('ADMIN_NAME', 'Administrator'),
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!')),
+                'email_verified_at' => Carbon::now(),
+            ]
+        );
+
+        if (! $user->hasRole($adminRole)) {
+            $user->assignRole($adminRole);
+        }
+
+        $this->command?->info("Admin account ready: {$email}");
     }
 }

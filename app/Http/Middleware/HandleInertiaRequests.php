@@ -2,38 +2,50 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Track;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determine the current asset version.
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
     /**
-     * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
+     * Props shared with every page: the signed-in user (with role),
+     * flash messages, and conference branding.
      */
     public function share(Request $request): array
     {
+        /** @var User|null $user */
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->isAdmin() ? User::ROLE_ADMIN : ($user->isEvaluator() ? User::ROLE_EVALUATOR : null),
+                ] : null,
             ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'conference' => config('conference'),
+            // Sidebar navigation needs the track list on every authenticated page.
+            'tracks' => fn () => $user
+                ? Track::orderBy('number')->get(['id', 'number', 'name'])
+                    ->map(fn ($t) => ['id' => $t->id, 'number' => $t->number, 'name' => $t->name])
+                    ->values()
+                : [],
         ];
     }
 }

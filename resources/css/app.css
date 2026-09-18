@@ -1,6 +1,3 @@
-@import "@fontsource/dancing-script";
-@import "@fontsource/great-vibes";
-@import "@fontsource/lobster";
 
 
 @tailwind base;
@@ -15,7 +12,7 @@
         --card-foreground: 222.2 84% 4.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 222.2 84% 4.9%;
-        --primary: 221.2 83.2% 53.3%;
+        --primary: 160 60% 26%;
         --primary-foreground: 210 40% 98%;
         --secondary: 210 40% 96.1%;
         --secondary-foreground: 222.2 47.4% 11.2%;
@@ -27,21 +24,21 @@
         --destructive-foreground: 210 40% 98%;
         --border: 214.3 31.8% 91.4%;
         --input: 214.3 31.8% 91.4%;
-        --ring: 221.2 83.2% 53.3%;
+        --ring: 160 60% 30%;
         --radius: 0.5rem;
         --chart-1: 12 76% 61%;
         --chart-2: 173 58% 39%;
         --chart-3: 197 37% 24%;
         --chart-4: 43 74% 66%;
         --chart-5: 27 87% 67%;
-        --sidebar-background: 209, 100%, 40%; /* Dark Blue */
-        --sidebar-foreground: 220 80% 10%; /* Deep Blue Text */
-        --sidebar-primary: 220 50% 40%; /* Primary Blue */
-        --sidebar-primary-foreground: 0 0% 100%; /* White */
-        --sidebar-accent: 45 90% 55%; /* Bright Yellow */
-        --sidebar-accent-foreground: 220 80% 10%; /* Deep Blue */
-        --sidebar-border: 220 30% 50%; /* Medium Blue */
-        --sidebar-ring: 220 90% 35%; /* Vibrant Blue */
+        --sidebar-background: 160 60% 16%; /* Conference green */
+        --sidebar-foreground: 150 40% 96%;
+        --sidebar-primary: 43 96% 56%;
+        --sidebar-primary-foreground: 160 60% 10%;
+        --sidebar-accent: 160 40% 24%;
+        --sidebar-accent-foreground: 150 40% 96%;
+        --sidebar-border: 160 40% 24%;
+        --sidebar-ring: 43 96% 56%;
     }
     .dark {
         --background: 20 14.3% 4.1%;
@@ -85,5 +82,132 @@
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Printable result sheets: hide chrome, use the full page. */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .print-sheet {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        break-inside: avoid;
+    }
+    .print-sheet table {
+        font-size: 10px;
+    }
+    .print-sheet td,
+    .print-sheet th {
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
+    }
+    .print-compact {
+        margin-bottom: 6px !important;
+        padding-bottom: 6px !important;
+    }
+    .print-compact img,
+    .print-compact span[class*="size-"] {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    body {
+        background: #fff !important;
+    }
+    [data-sidebar="sidebar"],
+    [data-slot="sidebar-wrapper"] > [data-sidebar] {
+        display: none !important;
+    }
+    main {
+        padding: 0 !important;
+    }
+    table {
+        font-size: 11px;
+    }
+    tr {
+        break-inside: avoid;
+    }
+}
+
+/* ------------------------------------------------------------------
+   Motion: small, fast, and respectful of reduced-motion settings.
+   ------------------------------------------------------------------ */
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Applied to the page body on every Inertia navigation. */
+.page-enter {
+    animation: fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Children fade up one after another. Add to any grid/list wrapper. */
+.stagger > * {
+    animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > :nth-child(1) { animation-delay: 0ms; }
+.stagger > :nth-child(2) { animation-delay: 45ms; }
+.stagger > :nth-child(3) { animation-delay: 90ms; }
+.stagger > :nth-child(4) { animation-delay: 135ms; }
+.stagger > :nth-child(5) { animation-delay: 180ms; }
+.stagger > :nth-child(6) { animation-delay: 225ms; }
+.stagger > :nth-child(7) { animation-delay: 270ms; }
+.stagger > :nth-child(8) { animation-delay: 315ms; }
+.stagger > :nth-child(9) { animation-delay: 360ms; }
+.stagger > :nth-child(10) { animation-delay: 405ms; }
+.stagger > :nth-child(11) { animation-delay: 450ms; }
+.stagger > :nth-child(12) { animation-delay: 495ms; }
+.stagger > :nth-child(n + 13) { animation-delay: 540ms; }
+
+/* Cards and interactive surfaces get a gentle lift on hover. */
+.lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px -12px rgba(6, 78, 59, 0.35);
+}
+
+/* While Inertia is fetching the next page, soften the current one. */
+main[aria-busy="true"] {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.2s ease 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
     }
 }

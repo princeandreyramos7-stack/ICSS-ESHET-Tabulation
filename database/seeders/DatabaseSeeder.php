@@ -2,32 +2,22 @@
 
 namespace Database\Seeders;
 
-use App\Models\Candidate;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Production-safe seed: roles, the admin account, the six tracks and five criteria.
+     * Evaluators and papers are created by the admin through the UI
+     * (or run DemoSeeder for local sample data).
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
         $this->call([
             RolePermissionSeeder::class,
             AdminUserSeeder::class,
-            GuestUserSeeder::class,
-            CategorySeeder::class
+            TrackSeeder::class,
+            CriterionSeeder::class,
         ]);
-
-        Candidate::factory()->count(10)->create();
     }
 }

@@ -1,147 +1,111 @@
-# 🌟 YUI INSTALLER 🌟
+# Conference Tabulation System
 
-## 🚀 Introduction
+Online tabulation for research presentations at the **2nd International Conference on Sustainable Solutions in Engineering, Science, Health, Education, and Technology (ICSS-ESHET 2026)**. Evaluators score each paper on the official five-criterion rubric from any device; the administrator manages papers and evaluators, locks tracks when presentations finish, and prints result sheets.
 
-Welcome to my personal laravel installer **YUI**! This setup is designed for developers who want a **lightweight, modern, and efficient** foundation for building Laravel applications with a React frontend powered by **[Inertia.js](https://inertiajs.com)**.
+Built with Laravel 12, Inertia.js and React.
 
-This kit is **JavaScript-first**, using **JSX instead of TSX**, making it accessible to developers who prefer plain JavaScript over TypeScript. It includes **React 19, TailwindCSS 4**, and Breeze for simple authentication and scaffolding.
+## How it works
 
----
+**Roles**
 
-## 🎯 Features
+| Role | Can do |
+|------|--------|
+| Administrator | Add/edit papers and evaluator accounts, lock/unlock tracks, view and print per-track result sheets and per-paper breakdowns. |
+| Evaluator | Sign in, open a track, rate every paper on the five criteria, add comments, revise ratings until the track is locked. |
 
-✔️ **Laravel** – Laravel provides a complete ecosystem for web artisans.  
-✔️ **Laravel Breeze** – Lightweight authentication with Inertia.js.  
-✔️ **Laravel Pulse** – delivers at-a-glance insights into your application's performance and usage.  
-✔️ **Orion** – The simplest way to create REST API with Laravel.  
-✔️ **Inertia.js** – Create modern single-page React, Vue, and Svelte apps using classic server-side routing.  
-✔️ **React 19 + JSX** – Simple, clean, and TypeScript-free.  
-✔️ **React Icons** – Include popular icons in your React projects easily with react-icons.  
-✔️ **TanStack Query** – Powerful asynchronous state management for TS/JS.  
-✔️ **Zustand** – A small, fast, and scalable bearbones state management solution.  
-✔️ **Laravel-Spatie-permission** – Associate users with roles and permissions.  
-✔️ **TailwindCSS 4** – Modern styling with utility-first CSS.  
-✔️ **Vite-Powered** – Lightning-fast HMR for smooth development.  
-✔️ **Pre-configured Testing** – Includes PHPUnit & Pest.  
-✔️ **Quick Setup** – Get started in minutes!
+**Tracks** (from the official evaluation sheets)
 
----
+1. Sustainable Engineering Solutions / Renewable Energy and Environmental Technologies
+2. Bridging Technology and Public Health / Cross-Disciplinary Approaches to Global Health Challenges
+3. Human Arts and Architecture
+4. Computing Technology
+5. Digital Innovation in Education and Social Sciences
+6. Criminology and Legal Justice
 
-## 🛠 Getting Started
+**Criteria** (identical for every track, total 100)
 
-### 1️⃣ Install
+| Criterion | Max rating |
+|-----------|-----------|
+| Originality, novelty, creativity, or innovativeness | 25 |
+| Significance, impact, or contribution | 25 |
+| Clarity and coherence of the oral presentation including materials and delivery | 15 |
+| Mastery of the subject | 20 |
+| Quality of presentation materials | 15 |
 
-```bash
-composer global require luis-developer-08/yui-installer
-```
+An evaluator's total for a paper is the sum of the five ratings. The paper's **average** is the mean of all submitted evaluator totals. **Rank** within a track uses competition ranking (tied papers share a rank; the next rank is skipped).
 
-### 2️⃣ Create a New Laravel Project
+**Flow**
 
-```bash
-yui new my-laravel-app
-```
+1. Admin creates evaluator accounts (Evaluators page) and enters papers with their track and paper number (Papers page).
+2. Evaluators sign in and see their dashboard with progress per track. They open a track, pick a paper, and fill in the rubric. Every rating is validated against its maximum both in the browser and on the server.
+3. Evaluators can revise a submitted evaluation while the track is open.
+4. When a track's presentations are done, the admin locks it from **Tracks & Locks**. Locked tracks reject any further changes.
+5. Admin prints the track result sheet (papers x evaluators, average, rank, signature block) or a per-paper breakdown with comments.
 
-🎉 Your application is now up and running!
-
----
-
-## ⚡ Create Inertia Components Easily
-
-This starter kit includes a custom Artisan command to quickly generate Inertia.js React components:
-
-### 🏗️ Generate a New Component
+## Local setup
 
 ```bash
-php artisan make:inertia Components/MyComponent
+composer install
+npm install
+cp .env.example .env          # then edit DB_* and ADMIN_* values
+php artisan key:generate
+php artisan migrate --seed    # roles, admin account, 6 tracks, 5 criteria
+php artisan db:seed --class=DemoSeeder   # optional: 3 sample evaluators + 12 papers
+npm run dev                   # in one terminal
+php artisan serve             # in another
 ```
 
-This will create a new file at `resources/js/Components/MyComponent.jsx` with a basic component template.
+Demo evaluators (from DemoSeeder) are `evaluator1@conference.local` to `evaluator3@conference.local`, password `password`.
 
-### 📂 File Structure
+## Production deployment
 
-```
-resources/js/Components/MyComponent.jsx
-```
-
-### ✨ Example Generated Component
-
-```jsx
-import React from "react";
-
-const MyComponent = () => {
-    return <div>{/* MyComponent component */}</div>;
-};
-
-export default MyComponent;
-```
-
-This command ensures that components are placed in the correct directory and prevents overwriting existing files. It also automatically opens the newly created file for editing.
-
----
-
-## ⚡ Create Orion Controllers Easily
-
-This starter kit also includes a command to quickly generate Orion controllers along with their associated models:
-
-### 🏗️ Generate a New Orion Controller
+Run the built-in checklist on the server after configuring `.env`; it exits with an error while anything blocking remains:
 
 ```bash
-php artisan make:orion PostController
+php artisan app:preflight
 ```
 
-This will create:
+It verifies debug mode, HTTPS, secure cookies, session lifetime, database and migrations, that an administrator exists, that the default and demo accounts are gone, and that the frontend build is present.
 
--   `app/Http/Controllers/Orion/PostController.php`
--   `app/Models/Post.php` (if it doesn’t exist)
--   Adds a route in `routes/api.php`
+1. Set these in `.env` on the server:
+   - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://your-domain`
+   - `DB_*` for MySQL (SQLite is fine only for small single-server setups)
+   - `ADMIN_EMAIL` and a strong `ADMIN_PASSWORD` **before** seeding
+   - `SESSION_SECURE_COOKIE=true` when served over HTTPS
+   - `CONFERENCE_*` to change the branding without touching code
+2. Run:
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   npm ci && npm run build
+   php artisan key:generate
+   php artisan migrate --force --seed
+   php artisan optimize
+   ```
+3. Point the web server document root to `public/`.
+4. Sign in as the admin, add evaluators and papers, then share evaluator credentials.
 
-### 📂 File Structure
+The app trusts the reverse proxy headers so links are generated with `https` behind hosting panels or Cloudflare.
 
+### Changing the admin password
+
+Sign in as the admin and use **My account** in the sidebar footer. Evaluator passwords are reset by the admin from the Evaluators page (Edit, then type a new password).
+
+## Security notes
+
+- No public registration and no email password reset; the administrator creates accounts and resets passwords.
+- Login is rate-limited (10 attempts per minute per IP, plus Breeze's per-account lockout). Evaluation submits are limited to 60 per minute per user.
+- Every rating is validated server-side against its criterion maximum; totals are computed server-side and never trusted from the client.
+- One evaluation per evaluator per paper is enforced by a unique index, and concurrent duplicate submits are retried safely.
+- Track locks are checked inside the write transaction, so a lock applied a moment earlier always wins.
+- Evaluators only ever receive their own ratings. Results, averages and other evaluators' scores are admin-only.
+- Browser security headers (nosniff, frame-ancestors same-origin, referrer policy, HSTS over HTTPS) are sent on every response.
+- Laravel Pulse is disabled by default (`PULSE_ENABLED=false`); when enabled it is admin-only at `/pulse`.
+- Seeders refuse to create the default administrator or demo accounts in production.
+
+## Tests
+
+```bash
+php artisan test
 ```
-app/Http/Controllers/Orion/PostController.php
-app/Models/Post.php
-```
 
-### ✨ Example Generated Controller
-
-```php
-<?php
-
-namespace App\Http\Controllers\Orion;
-
-use Orion\Http\Controllers\Controller;
-use App\Models\Post;
-
-class PostController extends Controller
-{
-    protected $model = Post::class;
-}
-```
-
-### 🔗 Auto-Registered Route in `routes/api.php`
-
-```php
-Orion::resource('posts', \App\Http\Controllers\Orion\PostController::class)->middleware(['auth', 'web']);
-```
-
-This command ensures that controllers are correctly placed, models are created if missing, and routes are automatically registered.
-
----
-
-## 📖 Documentation
-
-For more details on YUI, visit the official [YUI Website](https://yui-app.balbuena.io/).
-
-## 🤝 Contributing
-
-We welcome contributions! Check out the [Laravel contribution guide](https://laravel.com/docs/contributions) to get involved.
-
-## 📜 Code of Conduct
-
-Be kind and respectful. Please follow Laravel's [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## ⚖️ License
-
-This starter kit is **open-source** under the **MIT license**.
-
----
+Covers rubric validation (ranges, missing criteria, decimals), lock enforcement, role separation, ranking with ties, paper/evaluator management, and that every page renders with the expected props.

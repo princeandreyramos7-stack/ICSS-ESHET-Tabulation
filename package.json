@@ -6,10 +6,7 @@
         "dev": "vite"
     },
     "devDependencies": {
-        "@headlessui/react": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
-        "@tailwindcss/forms": "^0.5.3",
-        "@tailwindcss/vite": "^4.0.0",
         "@vitejs/plugin-react": "^4.2.0",
         "autoprefixer": "^10.4.12",
         "axios": "^1.8.4",
@@ -22,9 +19,6 @@
         "vite": "^6.0.11"
     },
     "dependencies": {
-        "@fontsource/dancing-script": "^5.2.5",
-        "@fontsource/great-vibes": "^5.2.5",
-        "@fontsource/lobster": "^5.2.5",
         "@radix-ui/react-alert-dialog": "^1.1.6",
         "@radix-ui/react-avatar": "^1.1.3",
         "@radix-ui/react-collapsible": "^1.1.3",
@@ -35,20 +29,14 @@
         "@radix-ui/react-separator": "^1.1.2",
         "@radix-ui/react-slot": "^1.1.2",
         "@radix-ui/react-tooltip": "^1.1.8",
-        "@tanstack/react-query": "^5.69.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "date-fns": "^4.1.0",
         "lucide-react": "^0.483.0",
         "next-themes": "^0.4.6",
-        "react-hook-form": "^7.55.0",
-        "react-icons": "^5.5.0",
-        "react-spinners": "^0.15.0",
-        "react-to-print": "^3.0.5",
+        "recharts": "^2.15.4",
         "shadcn": "^1.0.0",
         "sonner": "^2.0.2",
         "tailwind-merge": "^3.0.2",
-        "tailwindcss-animate": "^1.0.7",
-        "zustand": "^5.0.3"
+        "tailwindcss-animate": "^1.0.7"
     }
 }

@@ -2,38 +2,22 @@ import "../css/app.css";
 import "./bootstrap";
 
 import { createInertiaApp } from "@inertiajs/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 
-const appName = import.meta.env.VITE_APP_NAME || "Laravel";
-
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            refetchOnWindowFocus: false,
-            staleTime: 1000 * 60 * 5,
-        },
-    },
-});
+const appName = import.meta.env.VITE_APP_NAME || "Conference Tabulation";
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob("./Pages/**/*.jsx")
         ),
     setup({ el, App, props }) {
-        const root = createRoot(el);
-
-        root.render(
-            <QueryClientProvider client={queryClient}>
-                <App {...props} />
-            </QueryClientProvider>
-        );
+        createRoot(el).render(<App {...props} />);
     },
     progress: {
-        color: "#4B5563",
+        color: "#f59e0b",
     },
 });

@@ -14,16 +14,13 @@ export default {
     theme: {
     	extend: {
             fontSize: {
-                'custom-sm': '14px', // Custom font size
+                'custom-sm': '14px',
               },
     		fontFamily: {
     			sans: [
     				'Figtree',
                     ...defaultTheme.fontFamily.sans
                 ],
-                cursive: ['"Dancing Script"', "cursive"],
-                vibes: ['"Great Vibes"', "cursive"],
-                lobster: ['"Lobster"', "cursive"],
     		},
     		borderRadius: {
     			lg: 'var(--radius)',

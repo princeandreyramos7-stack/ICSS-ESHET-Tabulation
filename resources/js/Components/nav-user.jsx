@@ -1,42 +1,30 @@
-"use client";
+import { ChevronsUpDown, LogOut, UserCog } from "lucide-react";
+import { Link, router } from "@inertiajs/react";
 
-import {
-    BadgeCheck,
-    Bell,
-    ChevronsUpDown,
-    CreditCard,
-    LogOut,
-    Sparkles,
-} from "lucide-react";
-
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/Components/ui/dropdown-menu";
 import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 import { useInitials } from "@/hooks/use-initials";
-import { Link, useForm } from "@inertiajs/react";
 
 export function NavUser({ user }) {
     const { isMobile } = useSidebar();
     const getInitials = useInitials();
-    const { post } = useForm();
 
-    const handleLogout = (event) => {
-        event.preventDefault();
-        post(route("logout"));
-    };
+    if (!user) return null;
+
+    const handleLogout = () => router.post(route("logout"));
 
     return (
         <SidebarMenu>
@@ -45,24 +33,17 @@ export function NavUser({ user }) {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="border border-yellow-400 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            tooltip={user.name}
+                            className="border border-amber-300/60 text-emerald-50 data-[state=open]:bg-white/15 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0"
                         >
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage
-                                    src={user.avatar}
-                                    alt={user.name}
-                                />
-                                <AvatarFallback className="rounded-lg">
+                            <Avatar className="size-8 shrink-0 rounded-lg">
+                                <AvatarFallback className="rounded-lg bg-amber-400 text-emerald-950">
                                     {getInitials(user.name)}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">
-                                    {user.name}
-                                </span>
-                                <span className="truncate text-xs">
-                                    {user.email}
-                                </span>
+                                <span className="truncate font-semibold">{user.name}</span>
+                                <span className="truncate text-xs text-emerald-100">{user.email}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
@@ -74,46 +55,22 @@ export function NavUser({ user }) {
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="p-0 font-normal">
-                            <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                                <Avatar className="h-8 w-8 rounded-lg">
-                                    <AvatarImage
-                                        src="/img/account.png"
-                                        alt="account.png"
-                                    />
-                                    <AvatarFallback className="rounded-lg">
-                                        {getInitials(user.name)}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">
-                                        {user.name}
-                                    </span>
-                                    <span className="truncate text-xs">
-                                        {user.email}
-                                    </span>
-                                </div>
+                            <div className="px-2 py-1.5 text-left text-sm">
+                                <p className="truncate font-semibold">{user.name}</p>
+                                <p className="truncate text-xs capitalize text-gray-500">{user.role}</p>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-
-                        <DropdownMenuSeparator />
-                        {/* <DropdownMenuGroup>
+                        <DropdownMenuItem asChild className="cursor-pointer">
                             <Link href={route("profile.edit")}>
-                                <DropdownMenuItem className="cursor-pointer">
-                                    <BadgeCheck />
-                                    Account
-                                </DropdownMenuItem>
+                                <UserCog className="mr-2 size-4" />
+                                My account
                             </Link>
-                        </DropdownMenuGroup> */}
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            className="cursor-pointer"
-                            onClick={handleLogout}
-                        >
-                            <div className="flex  gap-2">
-                                <LogOut className="w-4" />
-                                Log out
-                            </div>
+                        <DropdownMenuItem className="cursor-pointer" onSelect={handleLogout}>
+                            <LogOut className="mr-2 size-4" />
+                            Log out
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

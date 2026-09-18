@@ -3,9 +3,7 @@
 use App\Models\User;
 
 test('login screen can be rendered', function () {
-    $response = $this->get('/login');
-
-    $response->assertStatus(200);
+    $this->get('/login')->assertStatus(200);
 });
 
 test('users can authenticate using the login screen', function () {
@@ -38,4 +36,16 @@ test('users can logout', function () {
 
     $this->assertGuest();
     $response->assertRedirect('/');
+});
+
+test('public registration is disabled', function () {
+    $this->get('/register')->assertNotFound();
+    $this->post('/register', [])->assertNotFound();
+});
+
+test('a user without a role is logged out at the dashboard', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get('/dashboard')->assertRedirect(route('login'));
+    $this->assertGuest();
 });
