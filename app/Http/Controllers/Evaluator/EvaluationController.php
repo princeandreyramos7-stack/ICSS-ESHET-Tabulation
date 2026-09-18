@@ -21,6 +21,9 @@ class EvaluationController extends Controller
      */
     public function store(StoreEvaluationRequest $request, Paper $paper): RedirectResponse
     {
+        // Evaluators may only score papers in their own track.
+        abort_if((int) $paper->track_id !== (int) $request->user()->track_id, 403);
+
         $userId = $request->user()->id;
         $validated = $request->validated();
         $criteriaIds = Criterion::ordered()->pluck('id');

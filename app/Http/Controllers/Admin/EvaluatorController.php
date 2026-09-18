@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEvaluatorRequest;
+use App\Models\Track;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -15,17 +16,27 @@ class EvaluatorController extends Controller
     public function index(): Response
     {
         $evaluators = User::evaluators()
+            ->with('track:id,number,name')
             ->withCount(['evaluations as evaluations_count' => fn ($q) => $q->whereNotNull('submitted_at')])
-            ->get();
+            ->get()
+            // Group the panel by track on screen (stable sort keeps the name order within a track).
+            ->sortBy(fn (User $u) => $u->track?->number ?? PHP_INT_MAX)
+            ->values();
 
         return Inertia::render('Admin/Evaluators/Index', [
             'evaluators' => $evaluators->map(fn (User $u) => [
                 'id' => $u->id,
                 'name' => $u->name,
                 'email' => $u->email,
+                'track_id' => $u->track_id,
+                'track_number' => $u->track?->number,
+                'track_name' => $u->track?->name,
                 'evaluations_count' => $u->evaluations_count,
                 'created_at' => $u->created_at?->toDateTimeString(),
             ])->values(),
+            'tracks' => Track::orderBy('number')->get(['id', 'number', 'name'])
+                ->map(fn (Track $t) => ['id' => $t->id, 'number' => $t->number, 'name' => $t->name, 'label' => $t->label])
+                ->values(),
         ]);
     }
 
@@ -38,6 +49,7 @@ class EvaluatorController extends Controller
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
+                'track_id' => $data['track_id'],
                 'email_verified_at' => now(),
             ]);
             $user->assignRole(User::ROLE_EVALUATOR);
@@ -54,6 +66,7 @@ class EvaluatorController extends Controller
 
         $evaluator->name = $data['name'];
         $evaluator->email = $data['email'];
+        $evaluator->track_id = $data['track_id'];
         if (! empty($data['password'])) {
             $evaluator->password = $data['password'];
         }

@@ -375,7 +375,12 @@ export default function Dashboard({ analytics }) {
                                 {evaluators.map((e) => (
                                     <li key={e.id}>
                                         <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                                            <span className="truncate font-medium text-gray-900">{e.name}</span>
+                                            <span className="flex min-w-0 items-center gap-2">
+                                                <span className="truncate font-medium text-gray-900">{e.name}</span>
+                                                <span className="shrink-0 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                                                    {e.track ?? "Unassigned"}
+                                                </span>
+                                            </span>
                                             <span className="shrink-0 text-xs text-gray-500">
                                                 {e.submitted}/{e.expected}
                                                 {e.average !== null && (

@@ -36,7 +36,7 @@ class AnalyticsService
             'timeline' => $this->timeline($evaluations),
             'average_by_track' => $this->averageByTrack($overall['tracks']),
             'distribution' => $this->distribution($evaluations),
-            'evaluator_activity' => $this->evaluatorActivity($evaluations, $progress['papers']),
+            'evaluator_activity' => $this->evaluatorActivity($evaluations, $progress['tracks']),
             'leaders' => $this->leaders($overall['tracks']),
             'recent' => $evaluations->sortByDesc('submitted_at')->take(8)->map(fn (Evaluation $e) => [
                 'id' => $e->id,
@@ -126,16 +126,25 @@ class AnalyticsService
         return array_values($bins);
     }
 
-    protected function evaluatorActivity(Collection $evaluations, int $totalPapers): array
+    /**
+     * Per-evaluator progress. An evaluator is expected to score every paper in
+     * their own track only, so "expected" is that track's paper count.
+     */
+    protected function evaluatorActivity(Collection $evaluations, array $trackRows): array
     {
         $byUser = $evaluations->groupBy('user_id');
+        $papersByTrack = collect($trackRows)->pluck('papers_count', 'id');
+        $numberByTrack = collect($trackRows)->pluck('number', 'id');
 
-        return User::evaluators()->get(['id', 'name'])->map(function (User $u) use ($byUser, $totalPapers) {
+        return User::evaluators()->get(['id', 'name', 'track_id'])->map(function (User $u) use ($byUser, $papersByTrack, $numberByTrack) {
             $group = $byUser->get($u->id, collect());
+            $totalPapers = (int) ($papersByTrack[$u->track_id] ?? 0);
 
             return [
                 'id' => $u->id,
                 'name' => $u->name,
+                'track_id' => $u->track_id,
+                'track' => isset($numberByTrack[$u->track_id]) ? 'T' . $numberByTrack[$u->track_id] : null,
                 'submitted' => $group->count(),
                 'expected' => $totalPapers,
                 'percent' => $totalPapers > 0 ? (int) round($group->count() / $totalPapers * 100) : 0,

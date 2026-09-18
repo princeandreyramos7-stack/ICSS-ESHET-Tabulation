@@ -116,7 +116,16 @@ export default function Dashboard({ tracks, totals, next_paper: nextPaper, recen
                             <p className="mt-1 text-lg font-bold text-amber-400">{c?.theme}</p>
                             <p className="mt-3 max-w-xl text-sm text-emerald-100/90">
                                 Welcome, <strong className="text-white">{auth.user.name}</strong>. Thank you for serving on
-                                the panel. Choose a track below to begin rating presentations.
+                                the panel
+                                {auth.user.track ? (
+                                    <>
+                                        {" "}of <strong className="text-white">Track {auth.user.track.number}</strong>
+                                        {auth.user.track.venue ? ` (${auth.user.track.venue})` : ""}. Open your track below
+                                        to begin rating presentations.
+                                    </>
+                                ) : (
+                                    ". You have not been assigned to a track yet; please ask the secretariat."
+                                )}
                             </p>
                             <div className="mt-5 flex flex-wrap gap-2">
                                 <InfoChip icon={CalendarDays}>{c?.dates}</InfoChip>
@@ -171,14 +180,23 @@ export default function Dashboard({ tracks, totals, next_paper: nextPaper, recen
                 <section>
                     <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
                         <div>
-                            <Eyebrow className="!text-amber-600">Research Key Themes</Eyebrow>
-                            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Choose a track</h2>
+                            <Eyebrow className="!text-amber-600">Parallel Session</Eyebrow>
+                            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">Your track</h2>
                         </div>
                         <p className="text-sm text-gray-500">
                             {totals.locked_tracks > 0 && `${totals.locked_tracks} locked · `}
-                            {tracks.length} tracks
+                            {tracks.length} track{tracks.length === 1 ? "" : "s"}
                         </p>
                     </div>
+                    {tracks.length === 0 && (
+                        <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50 p-8 text-center text-sm text-amber-900">
+                            <p className="font-semibold">No track assigned yet</p>
+                            <p className="mt-1">
+                                The administrator assigns each evaluator to one parallel-session track. Once you are
+                                assigned, your track and its papers will appear here.
+                            </p>
+                        </div>
+                    )}
                     <ol className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         {tracks.map((t) => {
                             const p = t.papers_count ? Math.round((t.evaluated_count / t.papers_count) * 100) : 0;

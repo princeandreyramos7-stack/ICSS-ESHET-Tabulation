@@ -19,9 +19,11 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
 
-        $tracks = Track::with('papers')->orderBy('number')->get();
+        // An evaluator only ever sees the one track they are assigned to.
+        $tracks = Track::with('papers')->whereKey($user->track_id)->orderBy('number')->get();
 
         $mine = Evaluation::where('user_id', $userId)
             ->whereNotNull('submitted_at')

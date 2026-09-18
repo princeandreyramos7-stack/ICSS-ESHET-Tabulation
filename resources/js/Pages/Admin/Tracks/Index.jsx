@@ -68,8 +68,15 @@ export default function Index({ progress }) {
                                             )}
                                         </div>
                                         <p className="text-sm text-gray-500">
-                                            {track.papers_count} paper{track.papers_count === 1 ? "" : "s"}
+                                            {track.papers_count} paper{track.papers_count === 1 ? "" : "s"} &middot;{" "}
+                                            {track.evaluators_count} evaluator{track.evaluators_count === 1 ? "" : "s"} on the panel
+                                            {track.venue ? ` · ${track.venue}` : ""}
                                         </p>
+                                        {track.evaluators_count === 0 && track.papers_count > 0 && (
+                                            <p className="mt-1 text-xs font-medium text-amber-700">
+                                                No evaluators assigned to this track yet.
+                                            </p>
+                                        )}
                                     </div>
                                     <div>
                                         <div className="mb-1 flex justify-between text-xs text-gray-600">

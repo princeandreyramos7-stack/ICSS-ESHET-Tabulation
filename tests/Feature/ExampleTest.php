@@ -13,7 +13,7 @@ test('the welcome page renders for guests with tracks, criteria and branding', f
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Welcome')
-            ->has('tracks', 6)
+            ->has('tracks', 7)
             ->has('criteria', 5)
             ->where('criteria.0.weight', 25)
             ->has('conference.acronym')

@@ -16,11 +16,12 @@ class ResultService
 {
     /**
      * Result sheet for one track:
-     * rows = papers, columns = every evaluator's total, plus average and rank.
+     * rows = papers, columns = each panel member's total, plus average and rank.
+     * The panel is the set of evaluators assigned to this track.
      */
     public function forTrack(Track $track): array
     {
-        $evaluators = User::evaluators()->get(['id', 'name']);
+        $evaluators = $track->evaluators()->get(['id', 'name', 'track_id']);
 
         $papers = $track->papers()
             ->with(['evaluations' => fn ($q) => $q->whereNotNull('submitted_at')])
@@ -62,6 +63,9 @@ class ResultService
                 'number' => $track->number,
                 'name' => $track->name,
                 'label' => $track->label,
+                'venue' => $track->venue,
+                'session_chair' => $track->session_chair,
+                'co_session_chair' => $track->co_session_chair,
                 'is_locked' => $track->is_locked,
             ],
             'evaluators' => $evaluators->map(fn ($e) => ['id' => $e->id, 'name' => $e->name])->values()->all(),
@@ -76,7 +80,8 @@ class ResultService
     public function forPaper(Paper $paper): array
     {
         $criteria = Criterion::ordered()->get();
-        $evaluators = User::evaluators()->get(['id', 'name']);
+        $paper->loadMissing('track');
+        $evaluators = $paper->track->evaluators()->get(['id', 'name', 'track_id']);
 
         $evaluations = $paper->evaluations()
             ->whereNotNull('submitted_at')
@@ -204,7 +209,7 @@ class ResultService
     {
         $evaluatorCount = User::evaluators()->count();
 
-        $tracks = Track::withCount('papers')->orderBy('number')->get();
+        $tracks = Track::withCount(['papers', 'evaluators'])->orderBy('number')->get();
 
         $submittedByTrack = Paper::query()
             ->join('evaluations', 'evaluations.paper_id', '=', 'papers.id')
@@ -213,8 +218,9 @@ class ResultService
             ->groupBy('papers.track_id')
             ->pluck('submitted', 'track_id');
 
-        $trackRows = $tracks->map(function (Track $track) use ($evaluatorCount, $submittedByTrack) {
-            $expected = $track->papers_count * $evaluatorCount;
+        $trackRows = $tracks->map(function (Track $track) use ($submittedByTrack) {
+            // Each paper is scored once by every member of its track's panel.
+            $expected = $track->papers_count * $track->evaluators_count;
             $submitted = (int) ($submittedByTrack[$track->id] ?? 0);
 
             return [
@@ -222,8 +228,10 @@ class ResultService
                 'number' => $track->number,
                 'name' => $track->name,
                 'label' => $track->label,
+                'venue' => $track->venue,
                 'is_locked' => $track->is_locked,
                 'papers_count' => $track->papers_count,
+                'evaluators_count' => $track->evaluators_count,
                 'expected' => $expected,
                 'submitted' => $submitted,
                 'percent' => $expected > 0 ? (int) round($submitted / $expected * 100) : 0,

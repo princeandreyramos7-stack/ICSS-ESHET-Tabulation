@@ -28,6 +28,16 @@ class PreflightCommand extends Command
         $this->check(config('app.env') === 'production', 'APP_ENV is production', 'APP_ENV=' . config('app.env'));
         $this->check(config('app.debug') === false, 'APP_DEBUG is off', 'Debug pages expose code and secrets to visitors');
         $this->check((bool) config('app.key'), 'APP_KEY is set', 'Run php artisan key:generate');
+
+        // config:cache re-bootstraps with APP_ENV already set, so it reads .env.<APP_ENV>
+        // instead of .env when both exist. A stale .env.production then silently swaps the
+        // database credentials the moment "php artisan optimize" runs.
+        $envSpecific = '.env.' . config('app.env');
+        $this->check(
+            ! file_exists(base_path($envSpecific)),
+            "No {$envSpecific} file beside .env",
+            "php artisan optimize would cache {$envSpecific} instead of .env; delete it or make it identical to .env"
+        );
         $this->check(str_starts_with((string) config('app.url'), 'https://'), 'APP_URL uses https', 'APP_URL=' . config('app.url'));
         $this->check(config('session.secure') === true, 'SESSION_SECURE_COOKIE is true', 'Cookies would be sent over plain HTTP');
         $this->check((int) config('session.lifetime') >= 240, 'Session lifetime covers a scoring session', 'SESSION_LIFETIME=' . config('session.lifetime') . ' minutes; 720 recommended');
@@ -45,7 +55,9 @@ class PreflightCommand extends Command
             $default = User::where('email', 'admin@conference.local')->exists();
             $this->check(! $default, 'Default admin@conference.local account removed', 'This account uses a guessable password');
             $demo = User::where('email', 'like', 'evaluator%@conference.local')->exists();
-            $this->check(! $demo, 'Demo evaluator accounts removed', 'DemoSeeder accounts use the password "password"');
+            $this->check(! $demo, 'Demo evaluator accounts removed', 'These accounts use the password "password"');
+            $unassigned = User::role(User::ROLE_EVALUATOR)->whereNull('track_id')->count();
+            $this->check($unassigned === 0, 'Every evaluator is assigned to a track', "{$unassigned} evaluator(s) have no track and cannot score anything", warnOnly: true);
         } catch (\Throwable $e) {
             $this->check(false, 'Database connection works', $e->getMessage());
         }

@@ -11,16 +11,17 @@ Built with Laravel 12, Inertia.js and React.
 | Role | Can do |
 |------|--------|
 | Administrator | Add/edit papers and evaluator accounts, lock/unlock tracks, view and print per-track result sheets and per-paper breakdowns. |
-| Evaluator | Sign in, open a track, rate every paper on the five criteria, add comments, revise ratings until the track is locked. |
+| Evaluator | Assigned to **one** track by the administrator. Signs in, rates every paper in that track on the five criteria, adds comments, and can revise ratings until the track is locked. |
 
-**Tracks** (from the official evaluation sheets)
+**Tracks** (parallel sessions, Day 02 - each with a venue, session chair, co-session chair and its own panel of evaluators)
 
 1. Sustainable Engineering Solutions / Renewable Energy and Environmental Technologies
 2. Bridging Technology and Public Health / Cross-Disciplinary Approaches to Global Health Challenges
-3. Human Arts and Architecture
+3. Digital Innovations in Education and Social Sciences
 4. Computing Technology
-5. Digital Innovation in Education and Social Sciences
-6. Criminology and Legal Justice
+5. Cross-Disciplinary in Legal Justice, Human Arts and Architecture
+6. Extension Track - Human Development, Sustainable Agriculture, Health and Environmental Resilience
+7. Extension Track - Engineering, Smart Analytics, ICT and Digital Innovations
 
 **Criteria** (identical for every track, total 100)
 
@@ -36,8 +37,8 @@ An evaluator's total for a paper is the sum of the five ratings. The paper's **a
 
 **Flow**
 
-1. Admin creates evaluator accounts (Evaluators page) and enters papers with their track and paper number (Papers page).
-2. Evaluators sign in and see their dashboard with progress per track. They open a track, pick a paper, and fill in the rubric. Every rating is validated against its maximum both in the browser and on the server.
+1. Admin creates evaluator accounts and assigns each one to a track (Evaluators page), then enters papers with their track and paper number (Papers page).
+2. Evaluators sign in and see only their own track. They pick a paper and fill in the rubric. Every rating is validated against its maximum both in the browser and on the server.
 3. Evaluators can revise a submitted evaluation while the track is open.
 4. When a track's presentations are done, the admin locks it from **Tracks & Locks**. Locked tracks reject any further changes.
 5. Admin prints the track result sheet (papers x evaluators, average, rank, signature block) or a per-paper breakdown with comments.
@@ -49,13 +50,10 @@ composer install
 npm install
 cp .env.example .env          # then edit DB_* and ADMIN_* values
 php artisan key:generate
-php artisan migrate --seed    # roles, admin account, 6 tracks, 5 criteria
-php artisan db:seed --class=DemoSeeder   # optional: 3 sample evaluators + 12 papers
+php artisan migrate --seed    # roles, admin account, 7 tracks, 5 criteria
 npm run dev                   # in one terminal
 php artisan serve             # in another
 ```
-
-Demo evaluators (from DemoSeeder) are `evaluator1@conference.local` to `evaluator3@conference.local`, password `password`.
 
 ## Production deployment
 
@@ -97,7 +95,7 @@ Sign in as the admin and use **My account** in the sidebar footer. Evaluator pas
 - Every rating is validated server-side against its criterion maximum; totals are computed server-side and never trusted from the client.
 - One evaluation per evaluator per paper is enforced by a unique index, and concurrent duplicate submits are retried safely.
 - Track locks are checked inside the write transaction, so a lock applied a moment earlier always wins.
-- Evaluators only ever receive their own ratings. Results, averages and other evaluators' scores are admin-only.
+- Evaluators only ever receive their own ratings, and only for the track they are assigned to; scoring a paper from another track is refused (403). Results, averages and other evaluators' scores are admin-only.
 - Browser security headers (nosniff, frame-ancestors same-origin, referrer policy, HSTS over HTTPS) are sent on every response.
 - Laravel Pulse is disabled by default (`PULSE_ENABLED=false`); when enabled it is admin-only at `/pulse`.
 - Seeders refuse to create the default administrator or demo accounts in production.

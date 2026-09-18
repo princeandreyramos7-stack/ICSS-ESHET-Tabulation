@@ -6,7 +6,7 @@ import LogoTrio from "@/Components/Brand/LogoTrio";
  * Letterhead printed at the top of every result sheet:
  * the three official seals, conference name, theme, and the track band.
  */
-export default function PrintSheetHeader({ subtitle, trackLabel }) {
+export default function PrintSheetHeader({ subtitle, trackLabel, venue }) {
     const { conference } = usePage().props;
 
     return (
@@ -26,6 +26,7 @@ export default function PrintSheetHeader({ subtitle, trackLabel }) {
                     {trackLabel}
                 </p>
             )}
+            {venue && <p className="mt-1 text-xs text-gray-600">Venue: {venue}</p>}
             {subtitle && (
                 <p className="mt-2 text-base font-semibold text-gray-800">{subtitle}</p>
             )}

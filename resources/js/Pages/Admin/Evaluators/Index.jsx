@@ -16,15 +16,17 @@ import {
 } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Select } from "@/Components/ui/select";
 import { Spinner } from "@/Components/ui/spinner";
 import AppLayout from "@/Layouts/AppLayout";
 
-function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
+function EvaluatorFormDialog({ open, onOpenChange, evaluator, tracks }) {
     const isEdit = Boolean(evaluator?.id);
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         name: "",
         email: "",
         password: "",
+        track_id: "",
     });
 
     useEffect(() => {
@@ -34,6 +36,7 @@ function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
             name: evaluator?.name ?? "",
             email: evaluator?.email ?? "",
             password: "",
+            track_id: evaluator?.track_id ? String(evaluator.track_id) : "",
         });
     }, [open, evaluator]);
 
@@ -78,6 +81,25 @@ function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
                                 autoFocus
                             />
                             <InputError message={errors.name} />
+                        </div>
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="track_id">Track (panel assignment)</Label>
+                            <Select
+                                id="track_id"
+                                value={data.track_id}
+                                onChange={(e) => setData("track_id", e.target.value)}
+                                required
+                            >
+                                <option value="" disabled>
+                                    Select the track this evaluator will score
+                                </option>
+                                {tracks.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                        Track {t.number}: {t.name}
+                                    </option>
+                                ))}
+                            </Select>
+                            <InputError message={errors.track_id} />
                         </div>
                         <div className="grid gap-1.5">
                             <Label htmlFor="email">Email (used to sign in)</Label>
@@ -132,7 +154,7 @@ function EvaluatorFormDialog({ open, onOpenChange, evaluator }) {
     );
 }
 
-export default function Index({ evaluators }) {
+export default function Index({ evaluators, tracks = [] }) {
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
@@ -176,9 +198,10 @@ export default function Index({ evaluators }) {
 
             <div className="mx-auto max-w-5xl space-y-4">
                 <p className="text-sm text-gray-500">
-                    Every evaluator scores every paper in every track. Their names appear as columns on
-                    the result sheets and in the signature block. Use <strong>Edit</strong> to reset a
-                    forgotten password.
+                    Each evaluator sits on the panel of <strong>one track</strong> and scores only that
+                    track&apos;s papers. Their names appear as columns on that track&apos;s result sheet
+                    and in its signature block. Use <strong>Edit</strong> to move an evaluator to another
+                    track or reset a forgotten password.
                 </p>
 
                 {evaluators.length === 0 ? (
@@ -193,12 +216,13 @@ export default function Index({ evaluators }) {
                 ) : (
                     <div className="overflow-hidden rounded-lg bg-white shadow-sm">
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[560px] text-sm">
+                            <table className="w-full min-w-[680px] text-sm">
                                 <thead className="border-b bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
                                     <tr>
                                         <th className="px-4 py-2.5 font-medium">#</th>
                                         <th className="px-4 py-2.5 font-medium">Name</th>
                                         <th className="px-4 py-2.5 font-medium">Email</th>
+                                        <th className="px-4 py-2.5 font-medium">Track</th>
                                         <th className="px-4 py-2.5 text-center font-medium">Evaluations</th>
                                         <th className="px-4 py-2.5" />
                                     </tr>
@@ -209,6 +233,18 @@ export default function Index({ evaluators }) {
                                             <td className="px-4 py-3 text-gray-500">{i + 1}</td>
                                             <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                                             <td className="px-4 py-3 text-gray-700">{u.email}</td>
+                                            <td className="px-4 py-3">
+                                                {u.track_number ? (
+                                                    <span className="inline-flex items-center gap-1.5" title={u.track_name}>
+                                                        <Badge variant="outline">T{u.track_number}</Badge>
+                                                        <span className="hidden max-w-[220px] truncate text-gray-700 lg:inline">
+                                                            {u.track_name}
+                                                        </span>
+                                                    </span>
+                                                ) : (
+                                                    <Badge variant="warning">Unassigned</Badge>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-3 text-center">
                                                 <Badge variant={u.evaluations_count > 0 ? "success" : "secondary"}>
                                                     {u.evaluations_count}
@@ -245,7 +281,7 @@ export default function Index({ evaluators }) {
                 )}
             </div>
 
-            <EvaluatorFormDialog open={formOpen} onOpenChange={setFormOpen} evaluator={editing} />
+            <EvaluatorFormDialog open={formOpen} onOpenChange={setFormOpen} evaluator={editing} tracks={tracks} />
 
             <ConfirmDialog
                 open={Boolean(deleting)}

@@ -20,10 +20,17 @@ class StoreEvaluatorRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
+            // Every evaluator sits on the panel of exactly one track.
+            'track_id' => ['required', 'integer', Rule::exists('tracks', 'id')],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             // Password is required on create, optional on update (blank = keep current).
             'password' => [$isUpdate ? 'nullable' : 'required', 'string', Password::min(8)],
         ];
+    }
+
+    public function attributes(): array
+    {
+        return ['track_id' => 'track'];
     }
 
     protected function prepareForValidation(): void
@@ -32,6 +39,7 @@ class StoreEvaluatorRequest extends FormRequest
             'name' => trim((string) $this->name),
             'email' => strtolower(trim((string) $this->email)),
             'password' => $this->password === '' ? null : $this->password,
+            'track_id' => $this->track_id === '' ? null : $this->track_id,
         ]);
     }
 }

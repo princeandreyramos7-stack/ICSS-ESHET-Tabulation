@@ -24,7 +24,8 @@ beforeEach(function () {
     $this->admin = User::factory()->create();
     $this->admin->assignRole(User::ROLE_ADMIN);
 
-    $this->evaluator = User::factory()->create();
+    // Evaluators sit on the panel of exactly one track.
+    $this->evaluator = User::factory()->create(['track_id' => $this->track->id]);
     $this->evaluator->assignRole(User::ROLE_EVALUATOR);
 
     $this->criteria = Criterion::ordered()->get();
@@ -161,7 +162,7 @@ test('login sends each role to its own dashboard', function () {
 });
 
 test('track results average across evaluators and rank with ties', function () {
-    $second = User::factory()->create();
+    $second = User::factory()->create(['track_id' => $this->track->id]);
     $second->assignRole(User::ROLE_EVALUATOR);
 
     $paperB = Paper::create(['track_id' => $this->track->id, 'paper_no' => 'T4-002', 'title' => 'B', 'researcher' => 'R']);
@@ -246,25 +247,37 @@ test('admin can manage papers and evaluators', function () {
         'researcher' => 'Someone',
     ])->assertSessionHasErrors('paper_no');
 
+    // A track is required for every evaluator.
+    $this->actingAs($this->admin)->from(route('admin.evaluators.index'))->post(route('admin.evaluators.store'), [
+        'name' => 'New Evaluator',
+        'email' => 'NEW@Example.com',
+        'password' => 'secret-pass-123',
+    ])->assertSessionHasErrors('track_id');
+
     $this->actingAs($this->admin)->post(route('admin.evaluators.store'), [
         'name' => 'New Evaluator',
         'email' => 'NEW@Example.com',
         'password' => 'secret-pass-123',
+        'track_id' => $this->track->id,
     ])->assertRedirect();
 
     $created = User::where('email', 'new@example.com')->first();
     expect($created)->not->toBeNull();
     expect($created->isEvaluator())->toBeTrue();
+    expect($created->track_id)->toBe($this->track->id);
 
     // Updating without a password keeps the old one.
     $oldHash = $created->password;
+    $otherTrack = Track::where('number', 7)->firstOrFail();
     $this->actingAs($this->admin)->put(route('admin.evaluators.update', $created), [
         'name' => 'Renamed',
         'email' => 'new@example.com',
         'password' => '',
+        'track_id' => $otherTrack->id,
     ])->assertRedirect();
     expect($created->fresh()->name)->toBe('Renamed');
     expect($created->fresh()->password)->toBe($oldHash);
+    expect($created->fresh()->track_id)->toBe($otherTrack->id);
 
     // Admin accounts cannot be edited or deleted through the evaluator endpoints.
     $this->actingAs($this->admin)->delete(route('admin.evaluators.destroy', $this->admin))->assertNotFound();

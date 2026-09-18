@@ -101,6 +101,21 @@ export default function Workspace({ tracks, criteria, selected, totals }) {
 
             <div className="mx-auto max-w-5xl space-y-4">
 
+                {!track && (
+                    <Card className="shadow-sm">
+                        <CardContent className="p-6 text-center text-sm text-gray-600">
+                            <p className="font-semibold text-gray-900">No track assigned yet</p>
+                            <p className="mt-1">
+                                The administrator assigns each evaluator to one parallel-session track. Please ask the
+                                secretariat if you expected to see papers here.
+                            </p>
+                            <Button asChild variant="outline" size="sm" className="mt-4">
+                                <Link href={route("evaluator.dashboard")}>Back to dashboard</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {track && (
                     <Card className="shadow-sm">
                         <CardContent className="p-4 sm:p-5">
@@ -108,6 +123,7 @@ export default function Workspace({ tracks, criteria, selected, totals }) {
                                 <div className="min-w-0">
                                     <p className="text-xs uppercase tracking-widest text-gray-500">
                                         Track {track.number}
+                                        {track.venue ? ` · ${track.venue}` : ""}
                                     </p>
                                     <h2 className="text-base font-bold leading-snug text-emerald-900 sm:text-lg">
                                         {track.name}
@@ -126,7 +142,7 @@ export default function Workspace({ tracks, criteria, selected, totals }) {
                                     <Button asChild variant="outline" size="sm">
                                         <Link href={route("evaluator.dashboard")}>
                                             <ArrowLeftRight />
-                                            <span className="hidden sm:inline">Change track</span>
+                                            <span className="hidden sm:inline">Dashboard</span>
                                         </Link>
                                     </Button>
                                 </div>

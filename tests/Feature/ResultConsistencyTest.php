@@ -24,8 +24,9 @@ beforeEach(function () {
     $this->criteria = Criterion::ordered()->get();
     $this->track = Track::where('number', 2)->firstOrFail();
 
+    // The three-member panel of this track.
     $this->evaluators = collect(range(1, 3))->map(function () {
-        $u = User::factory()->create();
+        $u = User::factory()->create(['track_id' => $this->track->id]);
         $u->assignRole(User::ROLE_EVALUATOR);
 
         return $u;

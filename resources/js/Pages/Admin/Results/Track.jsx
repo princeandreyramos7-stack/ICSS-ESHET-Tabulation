@@ -52,6 +52,7 @@ export default function Track({ result }) {
                     <PrintSheetHeader
                         trackLabel={`Track ${track.number}: ${track.name}`}
                         subtitle="Summary of Evaluation Scores"
+                        venue={track.venue}
                     />
 
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
@@ -68,7 +69,7 @@ export default function Track({ result }) {
 
                     {evaluators.length === 0 ? (
                         <p className="rounded-md border border-dashed p-8 text-center text-gray-500">
-                            No evaluator accounts exist yet. Add evaluators to start tabulating.
+                            No evaluators are assigned to this track yet. Assign the panel from the Evaluators page.
                         </p>
                     ) : papers.length === 0 ? (
                         <p className="rounded-md border border-dashed p-8 text-center text-gray-500">
@@ -168,7 +169,13 @@ export default function Track({ result }) {
                         papers share a rank.
                     </p>
 
-                    <EvaluatorSignatures evaluators={evaluators} />
+                    <EvaluatorSignatures
+                        evaluators={evaluators}
+                        chairs={[
+                            { title: "Session Chair", name: track.session_chair },
+                            { title: "Co-Session Chair", name: track.co_session_chair },
+                        ]}
+                    />
                 </div>
             </div>
         </AppLayout>

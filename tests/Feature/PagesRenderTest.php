@@ -23,7 +23,7 @@ beforeEach(function () {
     $this->admin = User::factory()->create();
     $this->admin->assignRole(User::ROLE_ADMIN);
 
-    $this->evaluator = User::factory()->create();
+    $this->evaluator = User::factory()->create(['track_id' => $this->track->id]);
     $this->evaluator->assignRole(User::ROLE_EVALUATOR);
 
     $this->submitSample = function () {
@@ -42,19 +42,19 @@ test('every admin page renders with its props', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Dashboard')
-            ->has('analytics.progress.tracks', 6)
+            ->has('analytics.progress.tracks', 7)
             ->where('analytics.progress.papers', 1)
             ->where('analytics.progress.evaluators', 1)
             ->where('analytics.progress.submitted', 1)
             ->has('analytics.timeline', 1)
             ->where('analytics.timeline.0.cumulative', 1)
-            ->has('analytics.average_by_track', 6)
+            ->has('analytics.average_by_track', 7)
             ->where('analytics.average_by_track.0.average', 95)
             ->has('analytics.distribution', 10)
             ->where('analytics.distribution.9.count', 1)
             ->has('analytics.evaluator_activity', 1)
             ->where('analytics.evaluator_activity.0.submitted', 1)
-            ->has('analytics.leaders', 6)
+            ->has('analytics.leaders', 7)
             ->where('analytics.leaders.0.paper.average', 95)
             ->has('analytics.recent', 1)
             ->where('analytics.overall_average', 95)
@@ -64,7 +64,7 @@ test('every admin page renders with its props', function () {
             ->has('analytics.top_papers', 1)
             ->where('analytics.top_papers.0.average', 95)
             ->has('analytics.track_status', 4)
-            ->has('tracks', 6)
+            ->has('tracks', 7)
             ->has('conference.name')
             ->where('auth.user.role', 'admin'));
 
@@ -74,7 +74,7 @@ test('every admin page renders with its props', function () {
             ->component('Admin/Papers/Index')
             ->has('papers', 1)
             ->where('papers.0.evaluations_count', 1)
-            ->has('tracks', 6));
+            ->has('tracks', 7));
 
     $this->actingAs($this->admin)->get(route('admin.evaluators.index'))
         ->assertOk()
@@ -85,7 +85,7 @@ test('every admin page renders with its props', function () {
 
     $this->actingAs($this->admin)->get(route('admin.tracks.index'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('Admin/Tracks/Index')->has('progress.tracks', 6));
+        ->assertInertia(fn (Assert $page) => $page->component('Admin/Tracks/Index')->has('progress.tracks', 7));
 
     $this->actingAs($this->admin)->get(route('admin.results.track', $this->track))
         ->assertOk()
@@ -110,7 +110,7 @@ test('every admin page renders with its props', function () {
         ->assertInertia(fn (Assert $page) => $page->component('Profile/Edit'));
 });
 
-test('the evaluator workspace renders with every track, paper and prior rating', function () {
+test('the evaluator workspace renders only the assigned track with its papers and prior rating', function () {
     ($this->submitSample)();
 
     $pending = Paper::create([
@@ -125,7 +125,9 @@ test('the evaluator workspace renders with every track, paper and prior rating',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Evaluator/Workspace')
-            ->has('tracks', 6)
+            ->has('tracks', 1)
+            ->where('tracks.0.id', $this->track->id)
+            ->where('auth.user.track.id', $this->track->id)
             ->has('criteria', 5)
             ->has('tracks.0.papers', 2)
             ->where('tracks.0.evaluated_count', 1)
@@ -148,13 +150,25 @@ test('the evaluator workspace renders with every track, paper and prior rating',
             ->where('selected.track_id', $this->track->id)
             ->where('selected.paper_id', $this->paper->id));
 
-    // ?track= without a paper opens that track's first pending paper.
+    // ?track= pointing at another panel's track is ignored: the evaluator stays on their own track.
     $otherTrack = Track::where('number', 3)->firstOrFail();
     $this->actingAs($this->evaluator)->get(route('evaluator.workspace', ['track' => $otherTrack->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('selected.track_id', $otherTrack->id)
-            ->where('selected.paper_id', null));
+            ->has('tracks', 1)
+            ->where('selected.track_id', $this->track->id)
+            ->where('selected.paper_id', $pending->id));
+
+    // An evaluator without a track assignment sees no tracks and no selection.
+    $unassigned = User::factory()->create(['track_id' => null]);
+    $unassigned->assignRole(User::ROLE_EVALUATOR);
+    $this->actingAs($unassigned)->get(route('evaluator.workspace'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('tracks', 0)
+            ->where('auth.user.track', null)
+            ->where('selected.track_id', null)
+            ->where('totals.papers', 0));
 });
 
 test('login page renders with conference branding', function () {
@@ -177,7 +191,7 @@ test('the evaluator dashboard renders progress, next paper, recent submissions a
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Evaluator/Dashboard')
-            ->has('tracks', 6)
+            ->has('tracks', 1)
             ->where('tracks.0.papers_count', 2)
             ->where('tracks.0.evaluated_count', 1)
             ->where('tracks.0.next_paper_id', $pending->id)
@@ -210,7 +224,7 @@ test('the overall results page renders every track and a cross-track leaderboard
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Results/Overall')
-            ->has('result.tracks', 6)
+            ->has('result.tracks', 7)
             ->has('result.tracks.0.papers', 1)
             ->where('result.tracks.0.papers.0.rank', 1)
             ->has('result.leaderboard', 1)

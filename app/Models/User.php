@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'track_id',
     ];
 
     protected $hidden = [
@@ -44,6 +46,14 @@ class User extends Authenticatable
     public function isEvaluator(): bool
     {
         return $this->hasRole(self::ROLE_EVALUATOR);
+    }
+
+    /**
+     * The one track this evaluator is assigned to (null until the admin picks one).
+     */
+    public function track(): BelongsTo
+    {
+        return $this->belongsTo(Track::class);
     }
 
     /**

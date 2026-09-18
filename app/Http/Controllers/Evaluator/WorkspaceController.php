@@ -21,9 +21,11 @@ class WorkspaceController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $userId = $user->id;
 
-        $tracks = Track::with('papers')->orderBy('number')->get();
+        // An evaluator only ever sees the one track they are assigned to.
+        $tracks = Track::with('papers')->whereKey($user->track_id)->orderBy('number')->get();
 
         $evaluations = Evaluation::with('scores')
             ->where('user_id', $userId)
@@ -59,6 +61,7 @@ class WorkspaceController extends Controller
                 'number' => $track->number,
                 'name' => $track->name,
                 'label' => $track->label,
+                'venue' => $track->venue,
                 'is_locked' => $track->is_locked,
                 'papers' => $papers,
                 'papers_count' => $papers->count(),
