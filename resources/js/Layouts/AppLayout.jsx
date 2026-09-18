@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { toast } from "sonner";
 
@@ -50,6 +50,12 @@ export default function AppLayout({ title, breadcrumbs, actions, children }) {
                 <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-white/90 px-4 shadow-sm backdrop-blur print:hidden">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="mr-2 h-4" />
+                    <img 
+                        src="/img/piton-logo.png" 
+                        alt="PITON" 
+                        className="h-8 w-auto mr-3 print:hidden"
+                        title="Philippine Information Technology of the North"
+                    />
                     {breadcrumbs?.length ? (
                         <Breadcrumbs items={breadcrumbs} />
                     ) : (

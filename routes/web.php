@@ -48,7 +48,6 @@ Route::get('/dashboard', function () {
 */
 
 Route::middleware(['auth', 'role:' . User::ROLE_ADMIN])
-    ->prefix('admin')
     ->name('admin.')
     ->group(function () {
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
