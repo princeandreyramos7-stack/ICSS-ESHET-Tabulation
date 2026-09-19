@@ -157,8 +157,8 @@ test('guests are redirected to login', function () {
 });
 
 test('login sends each role to its own dashboard', function () {
-    $this->actingAs($this->admin)->get('/dashboard')->assertRedirect(route('admin.dashboard'));
-    $this->actingAs($this->evaluator)->get('/dashboard')->assertRedirect(route('evaluator.dashboard'));
+    $this->actingAs($this->admin)->get(route('dashboard'))->assertRedirect(route('admin.dashboard'));
+    $this->actingAs($this->evaluator)->get(route('dashboard'))->assertRedirect(route('evaluator.dashboard'));
 });
 
 test('track results average across evaluators and rank with ties', function () {

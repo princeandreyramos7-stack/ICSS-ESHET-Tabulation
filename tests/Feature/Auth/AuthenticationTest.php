@@ -46,6 +46,6 @@ test('public registration is disabled', function () {
 test('a user without a role is logged out at the dashboard', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)->get('/dashboard')->assertRedirect(route('login'));
+    $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('login'));
     $this->assertGuest();
 });

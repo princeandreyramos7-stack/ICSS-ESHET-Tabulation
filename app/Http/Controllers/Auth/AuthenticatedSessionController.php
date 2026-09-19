@@ -24,11 +24,14 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
-        // Redirect based on user role
+        // Redirect based on user role; anyone without a role lands on the role-aware
+        // "dashboard" route, which signs them out with an explanation.
         $user = Auth::user();
-        $intended = $user->isAdmin() 
-            ? route('admin.dashboard', absolute: false)
-            : route('evaluator.dashboard', absolute: false);
+        $intended = match (true) {
+            $user->isAdmin() => route('admin.dashboard', absolute: false),
+            $user->isEvaluator() => route('evaluator.dashboard', absolute: false),
+            default => route('dashboard', absolute: false),
+        };
 
         return redirect()->intended($intended);
     }

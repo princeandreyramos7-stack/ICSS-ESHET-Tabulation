@@ -23,8 +23,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('welcome');
 
-// Role-aware landing page. Breeze and tests reference this name.
-Route::get('/dashboard', function () {
+// Role-aware landing page, named "dashboard" (Breeze, Ziggy links and tests reference the name).
+// It lives at /home because the admin group below owns the plain /dashboard URI; a second
+// GET /dashboard would silently overwrite it and drop the "dashboard" route name entirely.
+Route::get('/home', function () {
     /** @var User $user */
     $user = Auth::user();
 

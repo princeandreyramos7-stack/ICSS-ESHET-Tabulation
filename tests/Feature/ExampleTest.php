@@ -27,5 +27,5 @@ test('signed-in users are sent from the welcome page to their dashboard', functi
     $admin = User::factory()->create();
     $admin->assignRole(User::ROLE_ADMIN);
 
-    $this->actingAs($admin)->get('/')->assertRedirect(route('dashboard'));
+    $this->actingAs($admin)->get('/')->assertRedirect(route('admin.dashboard'));
 });
