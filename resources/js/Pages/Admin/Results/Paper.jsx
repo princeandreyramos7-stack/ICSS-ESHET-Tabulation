@@ -1,6 +1,6 @@
 ﻿import { useRef } from "react";
 import { Head, Link } from "@inertiajs/react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 
 import PrintButton from "@/Components/PrintButton";
 import PrintSheetHeader from "@/Components/PrintSheetHeader";
@@ -35,6 +35,12 @@ export default function Paper({ result, track }) {
                             <ArrowLeft />
                             <span className="hidden sm:inline">Track results</span>
                         </Link>
+                    </Button>
+                    <Button asChild variant="default" size="sm">
+                        <a href={route("admin.results.paper.pdf", paper.id)}>
+                            <Download />
+                            Download PDF
+                        </a>
                     </Button>
                     <PrintButton />
                 </>

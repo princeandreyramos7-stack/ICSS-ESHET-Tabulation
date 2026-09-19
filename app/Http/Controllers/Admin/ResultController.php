@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Paper;
 use App\Models\Track;
+use App\Services\ResultPdf;
 use App\Services\ResultService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -26,20 +26,19 @@ class ResultController extends Controller
     /**
      * Download per-track result sheet as PDF.
      */
-    public function trackPdf(Track $track, ResultService $results): HttpResponse
+    public function trackPdf(Track $track, ResultService $results, ResultPdf $pdf): HttpResponse
     {
         $result = $results->forTrack($track);
-        
-        $pdf = Pdf::loadView('pdf.results.track', ['result' => $result])
-            ->setPaper('a4', 'landscape')
-            ->setOption('margin-top', 10)
-            ->setOption('margin-bottom', 10)
-            ->setOption('margin-left', 10)
-            ->setOption('margin-right', 10);
 
-        $filename = 'Track-' . $result['track']['number'] . '-Results-' . now()->format('Y-m-d') . '.pdf';
-        
-        return $pdf->download($filename);
+        // Wide panels get one column per evaluator; switch to landscape so names stay readable.
+        $orientation = count($result['evaluators']) > 4 ? 'landscape' : 'portrait';
+
+        return $pdf->download(
+            'pdf.results.track',
+            ['result' => $result],
+            'Track-' . $result['track']['number'] . '-Results-' . now()->format('Y-m-d') . '.pdf',
+            $orientation
+        );
     }
 
     /**
@@ -55,20 +54,13 @@ class ResultController extends Controller
     /**
      * Download overall results as PDF.
      */
-    public function overallPdf(ResultService $results): HttpResponse
+    public function overallPdf(ResultService $results, ResultPdf $pdf): HttpResponse
     {
-        $result = $results->overall();
-        
-        $pdf = Pdf::loadView('pdf.results.overall', ['result' => $result])
-            ->setPaper('a4', 'portrait')
-            ->setOption('margin-top', 10)
-            ->setOption('margin-bottom', 10)
-            ->setOption('margin-left', 10)
-            ->setOption('margin-right', 10);
-
-        $filename = 'Overall-Results-' . now()->format('Y-m-d') . '.pdf';
-        
-        return $pdf->download($filename);
+        return $pdf->download(
+            'pdf.results.overall',
+            ['result' => $results->overall()],
+            'Overall-Results-' . now()->format('Y-m-d') . '.pdf'
+        );
     }
 
     /**
@@ -92,10 +84,10 @@ class ResultController extends Controller
     /**
      * Download per-paper breakdown as PDF.
      */
-    public function paperPdf(Paper $paper, ResultService $results): HttpResponse
+    public function paperPdf(Paper $paper, ResultService $results, ResultPdf $pdf): HttpResponse
     {
         $paper->load('track');
-        
+
         $result = $results->forPaper($paper);
         $track = [
             'id' => $paper->track->id,
@@ -108,15 +100,10 @@ class ResultController extends Controller
         $rank = collect($results->forTrack($paper->track)['papers'])
             ->firstWhere('id', $paper->id)['rank'] ?? null;
 
-        $pdf = Pdf::loadView('pdf.results.paper', ['result' => $result, 'track' => $track, 'rank' => $rank])
-            ->setPaper('a4', 'portrait')
-            ->setOption('margin-top', 10)
-            ->setOption('margin-bottom', 10)
-            ->setOption('margin-left', 10)
-            ->setOption('margin-right', 10);
-
-        $filename = 'Paper-' . $result['paper']['paper_no'] . '-Breakdown-' . now()->format('Y-m-d') . '.pdf';
-        
-        return $pdf->download($filename);
+        return $pdf->download(
+            'pdf.results.paper',
+            ['result' => $result, 'track' => $track, 'rank' => $rank],
+            'Paper-' . $result['paper']['paper_no'] . '-Breakdown-' . now()->format('Y-m-d') . '.pdf'
+        );
     }
 }

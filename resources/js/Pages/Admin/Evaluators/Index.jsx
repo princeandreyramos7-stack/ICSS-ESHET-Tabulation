@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
-import { Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { Pencil, Plus, Search, Trash2, UserPlus } from "lucide-react";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
+import Pagination from "@/Components/Pagination";
 import InputError from "@/Components/InputError";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -19,6 +20,7 @@ import { Label } from "@/Components/ui/label";
 import { Select } from "@/Components/ui/select";
 import { Spinner } from "@/Components/ui/spinner";
 import AppLayout from "@/Layouts/AppLayout";
+import { usePagination } from "@/hooks/use-pagination";
 
 function EvaluatorFormDialog({ open, onOpenChange, evaluator, tracks }) {
     const isEdit = Boolean(evaluator?.id);
@@ -159,6 +161,26 @@ export default function Index({ evaluators, tracks = [] }) {
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
     const [deleteProcessing, setDeleteProcessing] = useState(false);
+    const [search, setSearch] = useState("");
+    // "" = all, "none" = unassigned, otherwise a track id.
+    const [trackFilter, setTrackFilter] = useState("");
+
+    const visible = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return evaluators.filter((u) => {
+            if (trackFilter === "none" && u.track_id) return false;
+            if (trackFilter && trackFilter !== "none" && String(u.track_id) !== trackFilter) return false;
+            if (!q) return true;
+            return (
+                u.name.toLowerCase().includes(q) ||
+                u.email.toLowerCase().includes(q) ||
+                (u.track_name ?? "").toLowerCase().includes(q)
+            );
+        });
+    }, [evaluators, search, trackFilter]);
+
+    const pager = usePagination(visible, 25);
+    const unassignedCount = evaluators.filter((u) => !u.track_id).length;
 
     const openCreate = () => {
         setEditing(null);
@@ -204,6 +226,34 @@ export default function Index({ evaluators, tracks = [] }) {
                     track or reset a forgotten password.
                 </p>
 
+                {evaluators.length > 0 && (
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="relative flex-1">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                            <Input
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search name, email, or track"
+                                className="bg-white pl-9"
+                            />
+                        </div>
+                        <Select
+                            value={trackFilter}
+                            onChange={(e) => setTrackFilter(e.target.value)}
+                            className="sm:w-72"
+                            aria-label="Filter by track"
+                        >
+                            <option value="">All tracks</option>
+                            <option value="none">Unassigned{unassignedCount ? ` (${unassignedCount})` : ""}</option>
+                            {tracks.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    Track {t.number}: {t.name}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                )}
+
                 {evaluators.length === 0 ? (
                     <div className="rounded-lg border border-dashed bg-white p-12 text-center text-gray-500">
                         <UserPlus className="mx-auto mb-3 size-8 text-gray-300" />
@@ -212,6 +262,10 @@ export default function Index({ evaluators, tracks = [] }) {
                             Add the first evaluator
                         </button>
                         .
+                    </div>
+                ) : visible.length === 0 ? (
+                    <div className="rounded-lg border border-dashed bg-white p-12 text-center text-gray-500">
+                        No evaluators match your search.
                     </div>
                 ) : (
                     <div className="overflow-hidden rounded-lg bg-white shadow-sm">
@@ -228,9 +282,9 @@ export default function Index({ evaluators, tracks = [] }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                    {evaluators.map((u, i) => (
+                                    {pager.pageItems.map((u, i) => (
                                         <tr key={u.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-gray-500">{i + 1}</td>
+                                            <td className="px-4 py-3 text-gray-500">{pager.offset + i + 1}</td>
                                             <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                                             <td className="px-4 py-3 text-gray-700">{u.email}</td>
                                             <td className="px-4 py-3">
@@ -277,6 +331,7 @@ export default function Index({ evaluators, tracks = [] }) {
                                 </tbody>
                             </table>
                         </div>
+                        <Pagination pager={pager} noun="evaluators" />
                     </div>
                 )}
             </div>

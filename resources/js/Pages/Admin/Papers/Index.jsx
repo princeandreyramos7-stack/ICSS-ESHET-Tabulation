@@ -4,6 +4,7 @@ import { ExternalLink, FileText, Pencil, Plus, Search, Trash2, Upload, X } from 
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import ManuscriptDialog from "@/Components/ManuscriptDialog";
+import Pagination from "@/Components/Pagination";
 import InputError from "@/Components/InputError";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -20,6 +21,7 @@ import { Label } from "@/Components/ui/label";
 import { Spinner } from "@/Components/ui/spinner";
 import { Select } from "@/Components/ui/select";
 import AppLayout from "@/Layouts/AppLayout";
+import { usePagination } from "@/hooks/use-pagination";
 
 const emptyPaper = (trackId = "") => ({
     track_id: trackId,
@@ -309,12 +311,16 @@ export default function Index({ papers, tracks, filters }) {
         });
     }, [papers, search, trackFilter]);
 
+    // Paginate the filtered list, then group only the current page by track so the
+    // track headings still appear but a long conference never renders hundreds of rows.
+    const pager = usePagination(visible, 25);
+
     const grouped = useMemo(() => {
         const map = new Map();
         tracks.forEach((t) => map.set(t.id, { track: t, papers: [] }));
-        visible.forEach((p) => map.get(p.track_id)?.papers.push(p));
+        pager.pageItems.forEach((p) => map.get(p.track_id)?.papers.push(p));
         return Array.from(map.values()).filter((g) => g.papers.length > 0);
-    }, [visible, tracks]);
+    }, [pager.pageItems, tracks]);
 
     const openCreate = () => {
         setEditing(null);
@@ -376,10 +382,6 @@ export default function Index({ papers, tracks, filters }) {
                         ))}
                     </Select>
                 </div>
-
-                <p className="text-sm text-gray-500">
-                    Showing {visible.length} of {papers.length} papers
-                </p>
 
                 {grouped.length === 0 ? (
                     <div className="rounded-lg border border-dashed bg-white p-12 text-center text-gray-500">
@@ -477,6 +479,12 @@ export default function Index({ papers, tracks, filters }) {
                             </div>
                         </div>
                     ))
+                )}
+
+                {visible.length > 0 && (
+                    <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+                        <Pagination pager={pager} noun="papers" className="border-t-0" />
+                    </div>
                 )}
             </div>
 
