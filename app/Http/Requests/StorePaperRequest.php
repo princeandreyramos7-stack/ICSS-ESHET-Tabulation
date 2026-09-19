@@ -23,6 +23,7 @@ class StorePaperRequest extends FormRequest
             'researcher' => ['required', 'string', 'max:255'],
             'affiliation' => ['nullable', 'string', 'max:255'],
             'presentation_order' => ['nullable', 'integer', 'min:1', 'max:999'],
+            'manuscript' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // 10MB max
         ];
     }
 
@@ -35,5 +36,13 @@ class StorePaperRequest extends FormRequest
             'affiliation' => $this->affiliation !== null ? trim((string) $this->affiliation) : null,
             'presentation_order' => $this->presentation_order === '' ? null : $this->presentation_order,
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'manuscript.mimes' => 'The manuscript must be a PDF file.',
+            'manuscript.max' => 'The manuscript must not exceed 10MB.',
+        ];
     }
 }

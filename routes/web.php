@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EvaluatorController;
@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\TrackController as AdminTrackController;
 use App\Http\Controllers\Evaluator\DashboardController as EvaluatorDashboardController;
 use App\Http\Controllers\Evaluator\EvaluationController;
 use App\Http\Controllers\Evaluator\WorkspaceController;
+use App\Http\Controllers\ManuscriptController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\User;
@@ -56,6 +57,7 @@ Route::middleware(['auth', 'role:' . User::ROLE_ADMIN])
         Route::post('papers', [PaperController::class, 'store'])->name('papers.store');
         Route::put('papers/{paper}', [PaperController::class, 'update'])->name('papers.update');
         Route::delete('papers/{paper}', [PaperController::class, 'destroy'])->name('papers.destroy');
+        Route::delete('papers/{paper}/manuscript', [PaperController::class, 'deleteManuscript'])->name('papers.manuscript.delete');
 
         Route::get('evaluators', [EvaluatorController::class, 'index'])->name('evaluators.index');
         Route::post('evaluators', [EvaluatorController::class, 'store'])->name('evaluators.store');
@@ -90,6 +92,16 @@ Route::middleware(['auth', 'role:' . User::ROLE_EVALUATOR])
             ->middleware('throttle:60,1')
             ->name('papers.evaluate.store');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Manuscripts (for both admin and evaluators)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth')->group(function () {
+    Route::get('manuscripts/{paper}', [ManuscriptController::class, 'show'])->name('manuscripts.show');
+});
 
 /*
 |--------------------------------------------------------------------------
