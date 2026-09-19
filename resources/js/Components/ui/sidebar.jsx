@@ -4,7 +4,7 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
+import { isMobileViewport, useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
@@ -73,9 +73,12 @@ const SidebarProvider = React.forwardRef((
     document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
   }, [setOpenProp, open])
 
-  // Helper to toggle the sidebar.
+  // Helper to toggle the sidebar. Ask the viewport at the moment of the tap rather than
+  // trusting state: on a phone the desktop sidebar is display:none, so toggling the
+  // wrong one looks like the button doing nothing.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile
+    const mobile = isMobile || isMobileViewport()
+    return mobile
       ? setOpenMobile((open) => !open)
       : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile])
@@ -162,7 +165,8 @@ const Sidebar = React.forwardRef((
     );
   }
 
-  if (isMobile) {
+  // Also render the sheet whenever it was opened, even if the isMobile state lags the viewport.
+  if (isMobile || openMobile) {
     return (
       (<Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
         <SheetContent
@@ -236,7 +240,7 @@ const SidebarTrigger = React.forwardRef(({ className, onClick, ...props }, ref) 
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      className={cn("h-7 w-7 touch-manipulation", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
