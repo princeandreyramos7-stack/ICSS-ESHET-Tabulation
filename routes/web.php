@@ -10,6 +10,7 @@ use App\Http\Controllers\Evaluator\EvaluationController;
 use App\Http\Controllers\Evaluator\WorkspaceController;
 use App\Http\Controllers\ManuscriptController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Middleware\RejectDroppedUploads;
 use App\Http\Controllers\WelcomeController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -56,8 +57,11 @@ Route::middleware(['auth', 'role:' . User::ROLE_ADMIN])
         Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
 
         Route::get('papers', [PaperController::class, 'index'])->name('papers.index');
-        Route::post('papers', [PaperController::class, 'store'])->name('papers.store');
+        Route::post('papers', [PaperController::class, 'store'])->name('papers.store')->middleware(RejectDroppedUploads::class);
         Route::put('papers/{paper}', [PaperController::class, 'update'])->name('papers.update');
+        // Multipart edits arrive as POST + _method=put. If PHP discarded an oversized body the
+        // _method field is lost with it, so accept the bare POST too and let the middleware explain.
+        Route::post('papers/{paper}', [PaperController::class, 'update'])->middleware(RejectDroppedUploads::class);
         Route::delete('papers/{paper}', [PaperController::class, 'destroy'])->name('papers.destroy');
         Route::delete('papers/{paper}/manuscript', [PaperController::class, 'deleteManuscript'])->name('papers.manuscript.delete');
 

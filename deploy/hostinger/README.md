@@ -22,6 +22,7 @@ The web root must contain **only** these items, all taken from this repository:
 WEB/
 ├── index.php     <- deploy/hostinger/public_html/index.php  (pins APP by absolute path)
 ├── .htaccess     <- deploy/hostinger/public_html/.htaccess
+├── .user.ini     <- deploy/hostinger/public_html/.user.ini  (PHP upload limits for manuscripts)
 ├── build/        <- APP/public/build   (committed Vite build)
 ├── img/          <- APP/public/img
 ├── favicon.ico   <- APP/public/favicon.ico
@@ -32,6 +33,7 @@ WEB/
 ```bash
 cp  "$APP/deploy/hostinger/public_html/index.php"  "$WEB/index.php"
 cp  "$APP/deploy/hostinger/public_html/.htaccess"  "$WEB/.htaccess"
+cp  "$APP/deploy/hostinger/public_html/.user.ini"  "$WEB/.user.ini"
 rsync -a --delete "$APP/public/build/" "$WEB/build/"
 rsync -a          "$APP/public/img/"   "$WEB/img/"
 cp  "$APP/public/favicon.ico" "$APP/public/robots.txt" "$WEB/"
@@ -139,3 +141,20 @@ The stored password of that user is not a bcrypt hash (typically a row edited by
 Running `php artisan db:seed --force` will reset the admin account (email: `Piton@gmail.com`) to use a 
 properly bcrypt-hashed password. Never paste passwords into the `users` table directly; create or reset 
 accounts through the application or through the seeder.
+
+## 5. Manuscript uploads: "file too large" or 405 on Edit
+
+The papers form shows the limit that is really in force: the smaller of `MANUSCRIPT_MAX_MB` in `.env`
+(default 25) and PHP's `upload_max_filesize` / `post_max_size`. When PHP's limits are lower than the
+file, PHP discards the whole request body before Laravel runs; the app now turns that into a toast with
+the limit instead of a 405/413 page.
+
+To raise the PHP limits, either copy `deploy/hostinger/public_html/.user.ini` to `$WEB` (section 1) or set
+**upload_max_filesize**, **post_max_size** and **max_input_time** under hPanel → Advanced → PHP Configuration
+→ PHP options. hPanel wins if both are set. Verify with:
+
+```bash
+cd "$APP" && php -r 'foreach (["upload_max_filesize","post_max_size"] as $k) echo "$k=", ini_get($k), PHP_EOL;'
+```
+
+(the CLI may report different values than the web server; the number on the papers form is the one that counts).

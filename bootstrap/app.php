@@ -24,6 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trusting it lets Laravel see the real scheme so generated links are https.
         $middleware->trustProxies(at: '*');
 
+        // Oversized uploads: PHP already discards bodies above post_max_size. Laravel's early
+        // 413 would fire before the session exists, so it could not tell the admin anything;
+        // App\Http\Middleware\RejectDroppedUploads on the paper routes redirects back with the
+        // limit instead.
+        $middleware->remove(\Illuminate\Http\Middleware\ValidatePostSize::class);
+
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
@@ -41,7 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return back()->with('error', 'Your session expired. Please try again.');
             }
 
-            $friendly = [401, 403, 404, 429, 500, 503];
+            $friendly = [401, 403, 404, 405, 413, 429, 500, 503];
             if (in_array($status, $friendly, true) && ! (config('app.debug') && $status >= 500)) {
                 return Inertia::render('Error', ['status' => $status])
                     ->toResponse($request)

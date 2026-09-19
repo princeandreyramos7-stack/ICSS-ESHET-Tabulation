@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePaperRequest;
 use App\Models\Paper;
 use App\Models\Track;
+use App\Support\UploadLimit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,7 @@ class PaperController extends Controller
             'tracks' => Track::orderBy('number')->get(['id', 'number', 'name'])
                 ->map(fn ($t) => ['id' => $t->id, 'number' => $t->number, 'name' => $t->name, 'label' => $t->label]),
             'filters' => ['search' => $search, 'track' => $trackId ?: null],
+            'manuscript_max_mb' => UploadLimit::manuscriptMegabytes(),
         ]);
     }
 

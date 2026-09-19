@@ -33,9 +33,9 @@ const emptyPaper = (trackId = "") => ({
     manuscript: null,
 });
 
-function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) {
+function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId, maxMb }) {
     const isEdit = Boolean(paper?.id);
-    const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm(
+    const { data, setData, post, put, processing, errors, setError, clearErrors, reset } = useForm(
         emptyPaper(defaultTrackId)
     );
     const [manuscriptFile, setManuscriptFile] = useState(null);
@@ -61,10 +61,17 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setData("manuscript", file);
-            setManuscriptFile(file);
+        if (!file) return;
+        // Reject oversized files here: the server would discard the whole request body,
+        // and the admin would only see a generic error.
+        if (file.size > maxMb * 1024 * 1024) {
+            setError("manuscript", `That file is ${(file.size / 1024 / 1024).toFixed(1)} MB; the limit is ${maxMb} MB.`);
+            e.target.value = "";
+            return;
         }
+        clearErrors("manuscript");
+        setData("manuscript", file);
+        setManuscriptFile(file);
     };
 
     const removeManuscript = () => {
@@ -94,10 +101,8 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
             forceFormData: true,
         };
         if (isEdit) {
-            post(route("admin.papers.update", paper.id), {
-                ...options,
-                _method: "put",
-            });
+            // Inertia turns this into POST + _method=put itself (multipart bodies cannot be PUT).
+            put(route("admin.papers.update", paper.id), options);
         } else {
             post(route("admin.papers.store"), options);
         }
@@ -259,7 +264,7 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
                                         className="cursor-pointer"
                                     />
                                     <p className="mt-1 text-xs text-gray-500">
-                                        PDF only, max 10MB. {isEdit && paper?.has_manuscript ? "Upload new file to replace existing." : ""}
+                                        PDF only, up to {maxMb} MB. {isEdit && paper?.has_manuscript ? "Upload a new file to replace the existing one." : ""}
                                     </p>
                                 </div>
                             )}
@@ -289,7 +294,7 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
     );
 }
 
-export default function Index({ papers, tracks, filters }) {
+export default function Index({ papers, tracks, filters, manuscript_max_mb: maxMb = 10 }) {
     const [search, setSearch] = useState(filters.search ?? "");
     const [trackFilter, setTrackFilter] = useState(filters.track ? String(filters.track) : "");
     const [formOpen, setFormOpen] = useState(false);
@@ -494,6 +499,7 @@ export default function Index({ papers, tracks, filters }) {
                 paper={editing}
                 tracks={tracks}
                 defaultTrackId={trackFilter}
+                maxMb={maxMb}
             />
 
             <ConfirmDialog

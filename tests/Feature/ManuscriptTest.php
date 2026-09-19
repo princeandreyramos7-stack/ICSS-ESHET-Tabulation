@@ -157,3 +157,92 @@ test('guest is redirected to login', function () {
     $this->get(route('manuscripts.show', $paper))->assertRedirect(route('login'));
     $this->get(route('manuscripts.download', $paper))->assertRedirect(route('login'));
 });
+
+test('editing a paper with a new PDF works through the spoofed PUT the form sends', function () {
+    $paper = uploadPaperWithManuscript($this);
+    $oldPath = $paper->manuscript_path;
+
+    // Inertia sends multipart edits as POST + _method=put; this is what broke with a plain POST (405).
+    $this->actingAs($this->admin)->post(route('admin.papers.update', $paper), [
+        '_method' => 'put',
+        'track_id' => $this->track->id,
+        'paper_no' => 'T1-001',
+        'title' => 'Edited title',
+        'researcher' => 'Jane Doe',
+        'manuscript' => UploadedFile::fake()->createWithContent('revised.pdf', '%PDF-1.4 revised'),
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $paper->refresh();
+    expect($paper->title)->toBe('Edited title');
+    expect($paper->manuscript_original_name)->toBe('revised.pdf');
+    expect($paper->manuscript_path)->not->toBe($oldPath);
+    Storage::disk('local')->assertMissing($oldPath);
+    Storage::disk('local')->assertExists($paper->manuscript_path);
+});
+
+test('editing without choosing a file keeps the existing manuscript', function () {
+    $paper = uploadPaperWithManuscript($this);
+
+    $this->actingAs($this->admin)->post(route('admin.papers.update', $paper), [
+        '_method' => 'put',
+        'track_id' => $this->track->id,
+        'paper_no' => 'T1-001',
+        'title' => 'Edited title',
+        'researcher' => 'Jane Doe',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    expect($paper->fresh()->hasManuscript())->toBeTrue();
+});
+
+test('the papers page tells the form the effective upload limit', function () {
+    $this->actingAs($this->admin)->get(route('admin.papers.index'))
+        ->assertInertia(fn ($page) => $page
+            ->component('Admin/Papers/Index')
+            ->where('manuscript_max_mb', \App\Support\UploadLimit::manuscriptMegabytes()));
+
+    expect(\App\Support\UploadLimit::manuscriptMegabytes())->toBeGreaterThanOrEqual(1)
+        ->toBeLessThanOrEqual((int) config('manuscripts.max_upload_mb'));
+});
+
+test('a PDF over the limit is rejected with the limit in the message', function () {
+    $kb = \App\Support\UploadLimit::manuscriptKilobytes();
+
+    $this->actingAs($this->admin)->post(route('admin.papers.store'), [
+        'track_id' => $this->track->id,
+        'paper_no' => 'T1-009',
+        'title' => 'Huge',
+        'researcher' => 'Jane Doe',
+        'manuscript' => UploadedFile::fake()->create('huge.pdf', $kb + 1, 'application/pdf'),
+    ])->assertRedirect()->assertSessionHasErrors(['manuscript' => 'The manuscript must not exceed ' . \App\Support\UploadLimit::manuscriptMegabytes() . ' MB.']);
+
+    expect(Paper::where('paper_no', 'T1-009')->exists())->toBeFalse();
+});
+
+test('an upload PHP discarded for exceeding post_max_size comes back as a toast, not a 413 page', function () {
+    $paper = uploadPaperWithManuscript($this);
+    $tooBig = \App\Support\UploadLimit::iniBytes('post_max_size') + 1;
+    if ($tooBig <= 1) {
+        $this->markTestSkipped('post_max_size is unlimited in this PHP.');
+    }
+
+    $this->actingAs($this->admin)
+        ->from(route('admin.papers.index'))
+        ->call('POST', route('admin.papers.update', $paper), [], [], [], [
+            'CONTENT_LENGTH' => $tooBig,
+            'CONTENT_TYPE' => 'multipart/form-data; boundary=x',
+        ])
+        ->assertRedirect(route('admin.papers.index'))
+        ->assertSessionHas('error', fn ($m) => str_contains($m, 'too large'));
+});
+
+test('a spoofed edit whose body was dropped (plain POST) is also explained instead of a 405 page', function () {
+    $paper = uploadPaperWithManuscript($this);
+
+    $this->actingAs($this->admin)
+        ->from(route('admin.papers.index'))
+        ->call('POST', route('admin.papers.update', $paper), [], [], [], [
+            'CONTENT_TYPE' => 'multipart/form-data; boundary=x',
+        ])
+        ->assertRedirect(route('admin.papers.index'))
+        ->assertSessionHas('error', fn ($m) => str_contains($m, 'too large'));
+});

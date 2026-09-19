@@ -10,6 +10,8 @@ const MESSAGES = {
     401: ["Sign in required", "Please sign in to continue."],
     403: ["Access denied", "Your account is not allowed to open this page."],
     404: ["Page not found", "The page you are looking for does not exist or was moved."],
+    405: ["Request not allowed", "That action could not be processed. Go back and try again."],
+    413: ["File too large", "The file you tried to upload is bigger than this server accepts. Please choose a smaller PDF."],
     419: ["Session expired", "Your session timed out. Please sign in again."],
     429: ["Too many requests", "Please wait a moment and try again."],
     500: ["Something went wrong", "An unexpected error occurred. Please try again; if it persists, contact the secretariat."],

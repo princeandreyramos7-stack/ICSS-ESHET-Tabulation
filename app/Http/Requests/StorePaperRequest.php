@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\UploadLimit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,8 @@ class StorePaperRequest extends FormRequest
             'researcher' => ['required', 'string', 'max:255'],
             'affiliation' => ['nullable', 'string', 'max:255'],
             'presentation_order' => ['nullable', 'integer', 'min:1', 'max:999'],
-            'manuscript' => ['nullable', 'file', 'mimes:pdf', 'max:10240'], // 10MB max
+            // The ceiling is whatever this host really accepts, not a hard-coded guess.
+            'manuscript' => ['nullable', 'file', 'mimes:pdf', 'max:' . UploadLimit::manuscriptKilobytes()],
         ];
     }
 
@@ -40,9 +42,13 @@ class StorePaperRequest extends FormRequest
 
     public function messages(): array
     {
+        $max = UploadLimit::manuscriptMegabytes();
+
         return [
             'manuscript.mimes' => 'The manuscript must be a PDF file.',
-            'manuscript.max' => 'The manuscript must not exceed 10MB.',
+            'manuscript.max' => "The manuscript must not exceed {$max} MB.",
+            // PHP dropped the file before Laravel saw it (upload_max_filesize) - say so plainly.
+            'manuscript.uploaded' => "The manuscript could not be uploaded: it is larger than this server accepts ({$max} MB).",
         ];
     }
 }
