@@ -21,34 +21,50 @@
         .header {
             text-align: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #065f46;
+            padding: 15px;
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            color: white;
+            border-radius: 8px;
         }
         
         .header-logo {
             font-size: 18pt;
             font-weight: bold;
-            color: #065f46;
             margin-bottom: 5px;
         }
         
         .header-subtitle {
-            font-size: 11pt;
-            color: #4b5563;
-            margin-bottom: 3px;
+            font-size: 10pt;
+            margin-bottom: 8px;
+            opacity: 0.95;
         }
         
         .header-title {
             font-size: 14pt;
             font-weight: bold;
-            color: #1f2937;
             margin-top: 10px;
+            background-color: #f59e0b;
+            color: #1f2937;
+            padding: 8px 15px;
+            display: inline-block;
+            border-radius: 6px;
         }
         
         .header-info {
             font-size: 9pt;
-            color: #6b7280;
-            margin-top: 5px;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+        
+        .track-badge {
+            background-color: #f59e0b;
+            color: #1f2937;
+            padding: 6px 12px;
+            font-weight: bold;
+            font-size: 10pt;
+            display: inline-block;
+            border-radius: 4px;
+            margin-bottom: 15px;
         }
         
         table {
@@ -56,6 +72,7 @@
             border-collapse: collapse;
             margin: 15px 0;
             font-size: 9pt;
+            page-break-inside: avoid;
         }
         
         table th {
@@ -152,6 +169,43 @@
             font-size: 7pt;
             color: #6b7280;
             text-align: center;
+        }
+        
+        /* Page break controls */
+        .page-break-before {
+            page-break-before: always;
+        }
+        
+        .page-break-after {
+            page-break-after: always;
+        }
+        
+        .no-page-break {
+            page-break-inside: avoid;
+        }
+        
+        /* Responsive adjustments for different paper sizes */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+        
+        /* Mobile responsive - for viewing PDF on mobile devices */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 12pt;
+            }
+            table {
+                font-size: 10pt;
+            }
+            .header-logo {
+                font-size: 20pt;
+            }
+            .header-title {
+                font-size: 16pt;
+            }
         }
     </style>
 </head>

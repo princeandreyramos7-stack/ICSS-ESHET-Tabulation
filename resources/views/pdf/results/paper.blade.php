@@ -4,27 +4,31 @@
 
 @section('content')
     <div class="header">
-        <div class="header-logo">{{ config('conference.short_name') }}</div>
-        <div class="header-subtitle">{{ config('conference.name') }}</div>
-        <div class="header-title">Paper {{ $result['paper']['paper_no'] }} - Evaluation Breakdown</div>
-        <div class="header-info">Track {{ $track['number'] }}: {{ $track['name'] }}</div>
+        <div class="header-logo">ISABELA STATE UNIVERSITY - CITY OF ILAGAN CAMPUS</div>
+        <div class="header-subtitle">2nd International Conference on Sustainable Solutions in Engineering, Science, Health, Education, and Technology</div>
+        <div class="header-info">RESEARCH AND EXTENSION · SEPTEMBER 23-25, 2026 · CITY OF ILAGAN, ISABELA</div>
     </div>
 
-    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <div class="track-badge">
+        Track {{ $track['number'] }}: {{ $track['name'] }}
+    </div>
+
+    <div class="no-page-break" style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="font-size: 12pt; margin-bottom: 5px; color: #065f46;"><strong>Paper {{ $result['paper']['paper_no'] }}</strong></div>
         <div class="font-bold" style="font-size: 11pt; margin-bottom: 5px;">{{ $result['paper']['title'] }}</div>
         <div class="text-sm text-gray">{{ $result['paper']['researcher'] }}</div>
     </div>
 
-    <div style="margin-bottom: 20px; font-size: 10pt;">
+    <div class="no-page-break" style="margin-bottom: 20px; font-size: 10pt; background-color: #ecfdf5; padding: 12px; border-radius: 6px; border-left: 4px solid #065f46;">
         <strong>Average Score:</strong> 
-        <span style="font-size: 14pt; color: #065f46; font-weight: bold;">
+        <span style="font-size: 16pt; color: #065f46; font-weight: bold;">
             {{ $result['paper']['average'] !== null ? number_format($result['paper']['average'], 2) : 'N/A' }}
         </span>
         / 100
         &nbsp;&nbsp;|&nbsp;&nbsp;
         <strong>Rank:</strong> 
         @if($result['paper']['rank'])
-            {{ $result['paper']['rank'] }}{{ ['', 'st', 'nd', 'rd'][$result['paper']['rank']] ?? 'th' }}
+            <span style="font-weight: bold; color: #065f46;">{{ $result['paper']['rank'] }}{{ ['', 'st', 'nd', 'rd'][$result['paper']['rank']] ?? 'th' }}</span>
         @else
             N/A
         @endif
@@ -34,7 +38,7 @@
 
     @if(count($result['evaluations']) > 0)
         @foreach($result['evaluations'] as $evaluation)
-            <div style="margin-bottom: 30px; page-break-inside: avoid;">
+            <div class="no-page-break" style="margin-bottom: 30px;">
                 <div style="background-color: #065f46; color: white; padding: 8px 12px; font-weight: bold; margin-bottom: 10px; border-radius: 4px;">
                     Evaluator: {{ $evaluation['evaluator_name'] }}
                     <span style="float: right;">Total: {{ number_format($evaluation['total'], 2) }}</span>
@@ -62,7 +66,7 @@
                         @endforeach
                         <tr style="background-color: #e5e7eb;">
                             <td colspan="3" class="text-right font-bold">Total Score:</td>
-                            <td class="text-center font-bold" style="font-size: 11pt; background-color: #d1fae5;">
+                            <td class="text-center font-bold" style="font-size: 11pt; background-color: #a7f3d0;">
                                 {{ number_format($evaluation['total'], 2) }}
                             </td>
                         </tr>
@@ -76,10 +80,14 @@
                     </div>
                 @endif
             </div>
+
+            @if(!$loop->last)
+                <div style="border-bottom: 2px dashed #d1d5db; margin: 20px 0;"></div>
+            @endif
         @endforeach
 
-        <div style="margin-top: 30px; padding: 15px; background-color: #f0fdf4; border: 1px solid #065f46; border-radius: 8px;">
-            <div class="font-bold" style="font-size: 11pt; margin-bottom: 5px;">Summary Statistics</div>
+        <div class="no-page-break" style="margin-top: 30px; padding: 15px; background-color: #f0fdf4; border: 1px solid #065f46; border-radius: 8px;">
+            <div class="font-bold" style="font-size: 11pt; margin-bottom: 8px; color: #065f46;">Summary Statistics</div>
             <table style="border: none;">
                 <tr style="border: none;">
                     <td style="border: none; width: 40%;"><strong>Number of Evaluations:</strong></td>
@@ -87,12 +95,12 @@
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none;"><strong>Average Score:</strong></td>
-                    <td style="border: none;">{{ $result['paper']['average'] !== null ? number_format($result['paper']['average'], 2) : 'N/A' }} / 100</td>
+                    <td style="border: none; font-weight: bold; color: #065f46;">{{ $result['paper']['average'] !== null ? number_format($result['paper']['average'], 2) : 'N/A' }} / 100</td>
                 </tr>
                 @if($result['paper']['rank'])
                     <tr style="border: none;">
                         <td style="border: none;"><strong>Rank in Track:</strong></td>
-                        <td style="border: none;">
+                        <td style="border: none; font-weight: bold; color: #065f46;">
                             {{ $result['paper']['rank'] }}{{ ['', 'st', 'nd', 'rd'][$result['paper']['rank']] ?? 'th' }}
                         </td>
                     </tr>
@@ -106,7 +114,8 @@
     @endif
 
     <div class="footer">
-        <div>Generated on {{ now()->format('F j, Y \a\t g:i A') }}</div>
-        <div>{{ config('conference.short_name') }} - {{ config('conference.organizer') }}</div>
+        <div><strong>Generated:</strong> {{ now()->format('F j, Y \a\t g:i A') }}</div>
+        <div><strong>Document:</strong> Paper {{ $result['paper']['paper_no'] }} Evaluation Breakdown</div>
+        <div style="margin-top: 5px; font-size: 7pt;">{{ config('conference.short_name') }} - {{ config('conference.organizer') }}</div>
     </div>
 @endsection

@@ -4,22 +4,23 @@
 
 @section('content')
     <div class="header">
-        <div class="header-logo">{{ config('conference.short_name') }}</div>
-        <div class="header-subtitle">{{ config('conference.name') }}</div>
-        <div class="header-title">Track {{ $result['track']['number'] }}: {{ $result['track']['name'] }}</div>
-        <div class="header-info">
-            Summary of Evaluation Scores
-            @if($result['track']['venue'])
-                | Venue: {{ $result['track']['venue'] }}
-            @endif
-        </div>
+        <div class="header-logo">ISABELA STATE UNIVERSITY - CITY OF ILAGAN CAMPUS</div>
+        <div class="header-subtitle">2nd International Conference on Sustainable Solutions in Engineering, Science, Health, Education, and Technology</div>
+        <div class="header-info">RESEARCH AND EXTENSION · SEPTEMBER 23-25, 2026 · CITY OF ILAGAN, ISABELA</div>
     </div>
 
-    <div style="margin-bottom: 10px; font-size: 9pt;">
+    <div class="track-badge">
+        Track {{ $result['track']['number'] }}: {{ $result['track']['name'] }}
+    </div>
+
+    <div class="no-page-break" style="margin-bottom: 15px; font-size: 9pt; background-color: #ecfdf5; padding: 10px; border-radius: 4px;">
         <strong>{{ count($result['papers']) }}</strong> paper(s) - 
         <strong>{{ count($result['evaluators']) }}</strong> evaluator(s)
         @if($result['track']['is_locked'])
-            <span class="badge">FINAL (LOCKED)</span>
+            <span class="badge" style="margin-left: 10px;">FINAL (LOCKED)</span>
+        @endif
+        @if($result['track']['venue'])
+            <span style="margin-left: 10px;">| <strong>Venue:</strong> {{ $result['track']['venue'] }}</span>
         @endif
     </div>
 
@@ -79,14 +80,14 @@
             </tbody>
         </table>
 
-        <div class="text-xs text-gray" style="margin-top: 10px;">
-            Each evaluator's score is the sum of five criteria (Originality 25, Significance 25, Clarity of Presentation 15, 
+        <div class="text-xs text-gray no-page-break" style="margin-top: 10px; background-color: #f9fafb; padding: 8px; border-radius: 4px;">
+            <strong>Evaluation Breakdown:</strong> Each evaluator's score is the sum of five criteria (Originality 25, Significance 25, Clarity of Presentation 15, 
             Mastery of Subject 20, Presentation Materials 15) out of 100. Average is across evaluators who submitted. 
             Rank uses competition ranking: tied papers share a rank.
         </div>
 
-        <div class="signatures">
-            <div style="font-weight: bold; margin-bottom: 15px;">Panel of Evaluators:</div>
+        <div class="signatures no-page-break">
+            <div style="font-weight: bold; margin-bottom: 15px; font-size: 11pt; color: #065f46;">Panel of Evaluators:</div>
             <div class="signature-grid">
                 @foreach($result['evaluators'] as $evaluator)
                     <div class="signature-item">
@@ -127,7 +128,8 @@
     @endif
 
     <div class="footer">
-        <div>Generated on {{ now()->format('F j, Y \a\t g:i A') }}</div>
-        <div>{{ config('conference.short_name') }} - {{ config('conference.organizer') }}</div>
+        <div><strong>Generated:</strong> {{ now()->format('F j, Y \a\t g:i A') }}</div>
+        <div><strong>Document:</strong> Track {{ $result['track']['number'] }} Results Summary</div>
+        <div style="margin-top: 5px; font-size: 7pt;">{{ config('conference.short_name') }} - {{ config('conference.organizer') }}</div>
     </div>
 @endsection
