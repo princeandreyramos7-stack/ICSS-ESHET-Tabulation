@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { FileText, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import InputError from "@/Components/InputError";
@@ -27,6 +27,7 @@ const emptyPaper = (trackId = "") => ({
     researcher: "",
     affiliation: "",
     presentation_order: "",
+    manuscript: null,
 });
 
 function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) {
@@ -34,10 +35,12 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm(
         emptyPaper(defaultTrackId)
     );
+    const [manuscriptFile, setManuscriptFile] = useState(null);
 
     useEffect(() => {
         if (!open) return;
         clearErrors();
+        setManuscriptFile(null);
         if (paper) {
             setData({
                 track_id: String(paper.track_id),
@@ -46,11 +49,35 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
                 researcher: paper.researcher,
                 affiliation: paper.affiliation ?? "",
                 presentation_order: paper.presentation_order ?? "",
+                manuscript: null,
             });
         } else {
             setData(emptyPaper(defaultTrackId ? String(defaultTrackId) : String(tracks[0]?.id ?? "")));
         }
     }, [open, paper]);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setData("manuscript", file);
+            setManuscriptFile(file);
+        }
+    };
+
+    const removeManuscript = () => {
+        setData("manuscript", null);
+        setManuscriptFile(null);
+        document.getElementById("manuscript").value = "";
+    };
+
+    const deleteExistingManuscript = () => {
+        if (!paper?.id) return;
+        if (confirm("Delete this manuscript? This cannot be undone.")) {
+            router.delete(route("admin.papers.manuscript.delete", paper.id), {
+                preserveScroll: true,
+            });
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -58,11 +85,16 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
             preserveScroll: true,
             onSuccess: () => {
                 reset();
+                setManuscriptFile(null);
                 onOpenChange(false);
             },
+            forceFormData: true,
         };
         if (isEdit) {
-            put(route("admin.papers.update", paper.id), options);
+            post(route("admin.papers.update", paper.id), {
+                ...options,
+                _method: "put",
+            });
         } else {
             post(route("admin.papers.store"), options);
         }
@@ -160,6 +192,78 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
                             />
                             <InputError message={errors.affiliation} />
                         </div>
+
+                        {/* Manuscript Upload */}
+                        <div className="grid gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4">
+                            <Label htmlFor="manuscript" className="flex items-center gap-2">
+                                <FileText className="size-4" />
+                                Manuscript PDF (optional)
+                            </Label>
+                            
+                            {isEdit && paper?.has_manuscript && !manuscriptFile && (
+                                <div className="flex items-center justify-between rounded-md bg-white p-3">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="size-4 text-emerald-600" />
+                                        <span className="text-sm font-medium">{paper.manuscript_name}</span>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => window.open(paper.manuscript_url, '_blank')}
+                                        >
+                                            View
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                            onClick={deleteExistingManuscript}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {manuscriptFile ? (
+                                <div className="flex items-center justify-between rounded-md bg-white p-3">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="size-4 text-emerald-600" />
+                                        <div>
+                                            <div className="text-sm font-medium">{manuscriptFile.name}</div>
+                                            <div className="text-xs text-gray-500">
+                                                {(manuscriptFile.size / 1024 / 1024).toFixed(2)} MB
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={removeManuscript}
+                                    >
+                                        <X className="size-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <Input
+                                        id="manuscript"
+                                        type="file"
+                                        accept=".pdf,application/pdf"
+                                        onChange={handleFileChange}
+                                        className="cursor-pointer"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        PDF only, max 10MB. {isEdit && paper?.has_manuscript ? "Upload new file to replace existing." : ""}
+                                    </p>
+                                </div>
+                            )}
+                            <InputError message={errors.manuscript} />
+                        </div>
                     </div>
 
                     <DialogFooter className="mt-6">
@@ -192,7 +296,6 @@ export default function Index({ papers, tracks, filters }) {
     const [deleting, setDeleting] = useState(null);
     const [deleteProcessing, setDeleteProcessing] = useState(false);
 
-    // Filtering happens client-side; the full list is small (conference scale).
     const visible = useMemo(() => {
         const q = search.trim().toLowerCase();
         return papers.filter((p) => {
@@ -319,7 +422,20 @@ export default function Index({ papers, tracks, filters }) {
                                                 <td className="px-4 py-2.5 text-gray-500">
                                                     {p.presentation_order ?? "-"}
                                                 </td>
-                                                <td className="px-4 py-2.5 font-bold text-gray-900">{p.paper_no}</td>
+                                                <td className="px-4 py-2.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-gray-900">{p.paper_no}</span>
+                                                        {p.has_manuscript && (
+                                                            <button
+                                                                onClick={() => window.open(p.manuscript_url, '_blank')}
+                                                                title="View manuscript"
+                                                                className="text-emerald-600 hover:text-emerald-700"
+                                                            >
+                                                                <FileText className="size-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td className="px-4 py-2.5 text-gray-900">{p.title}</td>
                                                 <td className="px-4 py-2.5 text-gray-700">
                                                     {p.researcher}

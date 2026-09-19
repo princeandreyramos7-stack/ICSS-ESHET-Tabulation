@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
@@ -166,6 +166,24 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                             <span className="block text-sm text-gray-500">{paper.affiliation}</span>
                         )}
                     </span>
+
+                    {paper.has_manuscript && (
+                        <>
+                            <span className="text-xs font-semibold uppercase text-gray-500 sm:pt-0.5">Manuscript</span>
+                            <div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => window.open(paper.manuscript_url, '_blank')}
+                                    className="gap-2"
+                                >
+                                    <FileText className="size-4" />
+                                    View Manuscript PDF
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
