@@ -35,7 +35,7 @@ const emptyPaper = (trackId = "") => ({
 
 function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId, maxMb }) {
     const isEdit = Boolean(paper?.id);
-    const { data, setData, post, put, processing, errors, setError, clearErrors, reset } = useForm(
+    const { data, setData, post, transform, processing, errors, setError, clearErrors, reset } = useForm(
         emptyPaper(defaultTrackId)
     );
     const [manuscriptFile, setManuscriptFile] = useState(null);
@@ -101,9 +101,12 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId, ma
             forceFormData: true,
         };
         if (isEdit) {
-            // Inertia turns this into POST + _method=put itself (multipart bodies cannot be PUT).
-            put(route("admin.papers.update", paper.id), options);
+            // PHP only parses multipart bodies on POST, so a file upload cannot travel on a real
+            // PUT. Send POST with _method=put in the *data* (Inertia 2 no longer adds it itself).
+            transform((form) => ({ ...form, _method: "put" }));
+            post(route("admin.papers.update", paper.id), options);
         } else {
+            transform((form) => form);
             post(route("admin.papers.store"), options);
         }
     };
