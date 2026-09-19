@@ -15,6 +15,7 @@
 @section('document', 'Paper ' . $paper['paper_no'] . ' Evaluation Breakdown')
 
 @section('content')
+<div class="pg-1">
     @include('pdf.partials.letterhead', [
         'trackLabel' => 'Track ' . $track['number'] . ': ' . $track['name'],
         'subtitle' => 'Evaluation Breakdown',
@@ -111,4 +112,5 @@
         'evaluators' => array_map(fn ($e) => ['name' => $e['evaluator_name']], $evaluations),
         'chairs' => [],
     ])
+</div>
 @endsection

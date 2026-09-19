@@ -2,14 +2,14 @@
 @php
     $chairs = array_values(array_filter($chairs ?? [], fn ($c) => !empty($c['name'])));
     // Up to four signatures per row; fewer names get wider, still-centered columns like the on-screen block.
-    $cols = max(1, min(count($evaluators), 4));
+    $cols = max(1, min(count($evaluators), 6)); // landscape fits six signatures across
     $chairCols = max(1, min(count($chairs), 2));
 @endphp
 @if(count($evaluators) > 0 || count($chairs) > 0)
     <div class="avoid-break">
         @if(count($evaluators) > 0)
             <p class="sig-heading">Panel of Evaluators</p>
-            <table class="sigs" align="center" style="width: {{ 25 * $cols }}%;">
+            <table class="sigs" align="center" style="width: {{ min(100, 17 * $cols) }}%;">
                 @foreach(array_chunk($evaluators, $cols) as $row)
                     <tr>
                         @foreach($row as $evaluator)

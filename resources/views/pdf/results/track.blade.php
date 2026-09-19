@@ -13,6 +13,7 @@
 @section('document', 'Track ' . $track['number'] . ' Summary of Evaluation Scores')
 
 @section('content')
+<div class="pg-1">
     @include('pdf.partials.letterhead', [
         'trackLabel' => 'Track ' . $track['number'] . ': ' . $track['name'],
         'venue' => $track['venue'] ?? null,
@@ -95,4 +96,5 @@
             ['title' => 'Co-Session Chair', 'name' => $track['co_session_chair'] ?? null],
         ],
     ])
+</div>
 @endsection

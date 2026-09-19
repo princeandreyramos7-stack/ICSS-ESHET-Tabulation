@@ -30,14 +30,11 @@ class ResultController extends Controller
     {
         $result = $results->forTrack($track);
 
-        // Wide panels get one column per evaluator; switch to landscape so names stay readable.
-        $orientation = count($result['evaluators']) > 4 ? 'landscape' : 'portrait';
-
+        // One landscape page, like the on-screen print.
         return $pdf->download(
             'pdf.results.track',
             ['result' => $result],
-            'Track-' . $result['track']['number'] . '-Results-' . now()->format('Y-m-d') . '.pdf',
-            $orientation
+            'Track-' . $result['track']['number'] . '-Results-' . now()->format('Y-m-d') . '.pdf'
         );
     }
 
@@ -56,10 +53,12 @@ class ResultController extends Controller
      */
     public function overallPdf(ResultService $results, ResultPdf $pdf): HttpResponse
     {
+        // Two landscape pages: leaderboard + panel signatures, then every track's ranking.
         return $pdf->download(
             'pdf.results.overall',
             ['result' => $results->overall()],
-            'Overall-Results-' . now()->format('Y-m-d') . '.pdf'
+            'Overall-Results-' . now()->format('Y-m-d') . '.pdf',
+            pages: 2
         );
     }
 

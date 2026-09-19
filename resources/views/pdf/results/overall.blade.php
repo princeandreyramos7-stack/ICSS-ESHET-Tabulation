@@ -6,12 +6,19 @@
     $evaluators = $result['evaluators'];
     $ordinal = fn (?int $n) => $n ? $n . (['', 'st', 'nd', 'rd'][$n] ?? 'th') : '-';
     $fmt = fn ($v) => $v === null ? '-' : number_format((float) $v, 2);
+    // Track cards per row on the landscape page: two rows whenever possible (7 tracks -> 4 + 3).
+    $perRow = max(3, min(5, (int) ceil(count($tracks) / 2)));
+    // ResultPdf fits each page separately: $only = 1 or 2 renders just that page.
+    $only = $only ?? null;
 @endphp
 
 @section('title', 'Overall Results')
 @section('document', 'Overall Results - All Tracks')
 
 @section('content')
+@if($only !== 2)
+<div class="pg-1">
+    {{-- ---------- Page 1: leaderboard and the panel's signatures ---------- --}}
     @include('pdf.partials.letterhead', ['subtitle' => 'Overall Results - All Tracks'])
 
     <table class="meta">
@@ -27,20 +34,19 @@
         </tr>
     </table>
 
-    {{-- Cross-track leaderboard --}}
-    <p class="section-title">Top papers across all tracks</p>
+    <p class="section-title" style="margin-top: 0;">Top papers across all tracks</p>
     @if(count($leaderboard) === 0)
         <p class="empty">No submitted evaluations yet.</p>
     @else
         <table class="sheet">
             <thead>
                 <tr>
-                    <th class="center" style="width: 9%;">Overall</th>
-                    <th style="width: 8%;">Track</th>
-                    <th style="width: 11%;">Paper No.</th>
+                    <th class="center" style="width: 8%;">Overall</th>
+                    <th style="width: 7%;">Track</th>
+                    <th style="width: 10%;">Paper No.</th>
                     <th>Title / Researcher</th>
-                    <th class="center" style="width: 11%;">Track rank</th>
-                    <th class="rank-head" style="width: 11%;">Average</th>
+                    <th class="center" style="width: 10%;">Track rank</th>
+                    <th class="rank-head" style="width: 10%;">Average</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,15 +67,29 @@
         </table>
     @endif
 
-    {{-- Per-track rankings, two cards per row --}}
-    <p class="section-title" style="margin-top: 12px;">Results by track</p>
+    @include('pdf.partials.signatures', ['evaluators' => $evaluators, 'chairs' => []])
+</div>
+@endif
+
+@if($only !== 1)
+    {{-- ---------- Page 2: every track's ranking ---------- --}}
+    @if($only === null)<div class="page-break"></div>@endif
+<div class="pg-2">
+
+    <table class="page-head">
+        <tr>
+            <td><span class="lead">Results by Track</span> &middot; {{ $conference['acronym'] }}</td>
+            <td class="right">{{ $conference['organizer'] }} &middot; {{ $conference['campus'] }}</td>
+        </tr>
+    </table>
+
     <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
-        @foreach(array_chunk($tracks, 2) as $pair)
+        @foreach(array_chunk($tracks, $perRow) as $row)
             <tr>
-                @foreach($pair as $entry)
+                @foreach($row as $entry)
                     @php $track = $entry['track']; $papers = $entry['papers']; @endphp
-                    <td style="width: 50%; vertical-align: top; padding: 0 {{ $loop->first ? '4px 8px 0' : '0 8px 4px' }};">
-                        <table class="card avoid-break">
+                    <td class="card-cell{{ $loop->last ? ' last' : '' }}" style="width: {{ 100 / $perRow }}%;">
+                        <table class="card">
                             <thead>
                                 <tr>
                                     <th class="card-head" colspan="4">
@@ -83,9 +103,9 @@
                             @else
                                 <thead class="cols">
                                     <tr>
-                                        <th class="center" style="width: 13%;">Rank</th>
+                                        <th class="center" style="width: 12%;">Rank</th>
                                         <th>Paper</th>
-                                        <th style="width: 28%;">Researcher</th>
+                                        <th style="width: 26%;">Researcher</th>
                                         <th class="right" style="width: 13%;">Avg</th>
                                     </tr>
                                 </thead>
@@ -103,7 +123,9 @@
                         </table>
                     </td>
                 @endforeach
-                @if(count($pair) === 1)<td style="width: 50%;"></td>@endif
+                @for($i = count($row); $i < $perRow; $i++)
+                    <td style="width: {{ 100 / $perRow }}%;"></td>
+                @endfor
             </tr>
         @endforeach
     </table>
@@ -112,6 +134,6 @@
         Average is the mean of submitted evaluator totals (out of 100). Track rank uses competition ranking within the
         track; the overall list orders all papers by average regardless of track.
     </p>
-
-    @include('pdf.partials.signatures', ['evaluators' => $evaluators, 'chairs' => []])
+</div>
+@endif
 @endsection
