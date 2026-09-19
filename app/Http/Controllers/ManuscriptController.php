@@ -16,11 +16,9 @@ class ManuscriptController extends Controller
     {
         $user = auth()->user();
 
-        // Authorization: Admin can view all, evaluators can only view their assigned tracks
+        // Authorization: Admin can view all, evaluators can only view their assigned track
         if (!$user->isAdmin()) {
-            $assignedTrackIds = $user->tracks()->pluck('tracks.id')->toArray();
-            
-            if (!in_array($paper->track_id, $assignedTrackIds)) {
+            if ($paper->track_id !== $user->track_id) {
                 abort(403, 'You do not have access to this manuscript.');
             }
         }
