@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight, ExternalLink, FileText, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
+import ManuscriptDialog from "@/Components/ManuscriptDialog";
 import InputError from "@/Components/InputError";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Spinner } from "@/Components/ui/spinner";
@@ -174,7 +174,7 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                                     className="gap-2"
                                 >
                                     <FileText className="size-4" />
-                                    View Manuscript PDF
+                                    View Full Manuscript
                                 </Button>
                             </div>
                         </>
@@ -325,44 +325,11 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                 </div>
             </form>
 
-            {/* Manuscript Viewer Modal */}
-            <Dialog open={manuscriptModalOpen} onOpenChange={setManuscriptModalOpen}>
-                <DialogContent className="max-w-6xl h-[90vh] p-0">
-                    <DialogHeader className="px-6 py-4 border-b">
-                        <div className="flex items-center justify-between">
-                            <DialogTitle className="flex items-center gap-2">
-                                <FileText className="size-5 text-emerald-600" />
-                                Manuscript - Paper {paper.paper_no}
-                            </DialogTitle>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => window.open(paper.manuscript_url, '_blank')}
-                                    className="gap-2"
-                                >
-                                    <ExternalLink className="size-4" />
-                                    Open Full View
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setManuscriptModalOpen(false)}
-                                >
-                                    <X className="size-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-hidden">
-                        <iframe
-                            src={paper.manuscript_url}
-                            className="w-full h-full"
-                            title="Manuscript PDF"
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <ManuscriptDialog
+                paper={paper}
+                open={manuscriptModalOpen}
+                onOpenChange={setManuscriptModalOpen}
+            />
 
             <ConfirmDialog
                 open={confirmOpen}

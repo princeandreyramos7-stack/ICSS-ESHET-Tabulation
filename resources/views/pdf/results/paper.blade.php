@@ -1,6 +1,14 @@
-﻿@extends('pdf.layout')
+@extends('pdf.layout')
 
 @section('title', 'Paper ' . $result['paper']['paper_no'] . ' Breakdown')
+
+@php
+    // Data shape comes from ResultService::forPaper(); $rank is the paper's
+    // competition rank within its track (null when nothing is submitted yet).
+    $submitted = array_values(array_filter($result['evaluations'], fn ($e) => $e['submitted']));
+    $pending = array_values(array_filter($result['evaluations'], fn ($e) => ! $e['submitted']));
+    $ordinal = fn (int $n) => $n . (['', 'st', 'nd', 'rd'][$n] ?? 'th');
+@endphp
 
 @section('content')
     <div class="header">
@@ -17,31 +25,34 @@
         <div style="font-size: 12pt; margin-bottom: 5px; color: #065f46;"><strong>Paper {{ $result['paper']['paper_no'] }}</strong></div>
         <div class="font-bold" style="font-size: 11pt; margin-bottom: 5px;">{{ $result['paper']['title'] }}</div>
         <div class="text-sm text-gray">{{ $result['paper']['researcher'] }}</div>
+        @if(!empty($result['paper']['affiliation']))
+            <div class="text-xs text-gray">{{ $result['paper']['affiliation'] }}</div>
+        @endif
     </div>
 
     <div class="no-page-break" style="margin-bottom: 20px; font-size: 10pt; background-color: #ecfdf5; padding: 12px; border-radius: 6px; border-left: 4px solid #065f46;">
-        <strong>Average Score:</strong> 
+        <strong>Average Score:</strong>
         <span style="font-size: 16pt; color: #065f46; font-weight: bold;">
-            {{ $result['paper']['average'] !== null ? number_format($result['paper']['average'], 2) : 'N/A' }}
+            {{ $result['average'] !== null ? number_format($result['average'], 2) : 'N/A' }}
         </span>
         / 100
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        <strong>Rank:</strong> 
-        @if($result['paper']['rank'])
-            <span style="font-weight: bold; color: #065f46;">{{ $result['paper']['rank'] }}{{ ['', 'st', 'nd', 'rd'][$result['paper']['rank']] ?? 'th' }}</span>
+        <strong>Rank:</strong>
+        @if($rank)
+            <span style="font-weight: bold; color: #065f46;">{{ $ordinal($rank) }}</span>
         @else
             N/A
         @endif
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        <strong>Evaluations:</strong> {{ count($result['evaluations']) }}
+        <strong>Evaluations:</strong> {{ $result['evaluations_count'] }} / {{ count($result['evaluations']) }}
     </div>
 
-    @if(count($result['evaluations']) > 0)
-        @foreach($result['evaluations'] as $evaluation)
+    @if(count($submitted) > 0)
+        @foreach($submitted as $evaluation)
             <div class="no-page-break" style="margin-bottom: 30px;">
                 <div style="background-color: #065f46; color: white; padding: 8px 12px; font-weight: bold; margin-bottom: 10px; border-radius: 4px;">
                     Evaluator: {{ $evaluation['evaluator_name'] }}
-                    <span style="float: right;">Total: {{ number_format($evaluation['total'], 2) }}</span>
+                    <span style="float: right;">Total: {{ number_format((float) $evaluation['total'], 2) }}</span>
                 </div>
 
                 <table>
@@ -54,26 +65,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($evaluation['ratings'] as $rating)
+                        @foreach($result['criteria'] as $criterion)
+                            @php $score = $evaluation['scores'][$criterion['id']] ?? null; @endphp
                             <tr>
                                 <td class="text-center font-bold">{{ $loop->iteration }}</td>
-                                <td>{{ $rating['criterion_label'] }}</td>
-                                <td class="text-center">{{ number_format($rating['max_rating'], 2) }}</td>
+                                <td>{{ $criterion['name'] }}</td>
+                                <td class="text-center">{{ number_format((float) $criterion['weight'], 2) }}</td>
                                 <td class="text-center font-bold" style="background-color: #d1fae5;">
-                                    {{ number_format($rating['rating'], 2) }}
+                                    {{ $score !== null ? number_format((float) $score, 2) : '-' }}
                                 </td>
                             </tr>
                         @endforeach
                         <tr style="background-color: #e5e7eb;">
                             <td colspan="3" class="text-right font-bold">Total Score:</td>
                             <td class="text-center font-bold" style="font-size: 11pt; background-color: #a7f3d0;">
-                                {{ number_format($evaluation['total'], 2) }}
+                                {{ number_format((float) $evaluation['total'], 2) }}
                             </td>
                         </tr>
                     </tbody>
                 </table>
 
-                @if($evaluation['comments'])
+                @if(!empty($evaluation['comments']))
                     <div style="margin-top: 10px; padding: 10px; background-color: #f9fafb; border-left: 3px solid #065f46;">
                         <div class="font-bold text-sm" style="margin-bottom: 5px;">Comments:</div>
                         <div style="font-size: 9pt; white-space: pre-wrap;">{{ $evaluation['comments'] }}</div>
@@ -91,25 +103,37 @@
             <table style="border: none;">
                 <tr style="border: none;">
                     <td style="border: none; width: 40%;"><strong>Number of Evaluations:</strong></td>
-                    <td style="border: none;">{{ count($result['evaluations']) }}</td>
+                    <td style="border: none;">{{ $result['evaluations_count'] }} of {{ count($result['evaluations']) }} panel member(s)</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none;"><strong>Average Score:</strong></td>
-                    <td style="border: none; font-weight: bold; color: #065f46;">{{ $result['paper']['average'] !== null ? number_format($result['paper']['average'], 2) : 'N/A' }} / 100</td>
+                    <td style="border: none; font-weight: bold; color: #065f46;">{{ $result['average'] !== null ? number_format($result['average'], 2) : 'N/A' }} / 100</td>
                 </tr>
-                @if($result['paper']['rank'])
+                @if($rank)
                     <tr style="border: none;">
                         <td style="border: none;"><strong>Rank in Track:</strong></td>
-                        <td style="border: none; font-weight: bold; color: #065f46;">
-                            {{ $result['paper']['rank'] }}{{ ['', 'st', 'nd', 'rd'][$result['paper']['rank']] ?? 'th' }}
-                        </td>
+                        <td style="border: none; font-weight: bold; color: #065f46;">{{ $ordinal($rank) }}</td>
                     </tr>
                 @endif
+                @foreach($result['criteria'] as $criterion)
+                    @php $avg = $result['criterion_averages'][$criterion['id']] ?? null; @endphp
+                    <tr style="border: none;">
+                        <td style="border: none;" class="text-sm">Avg. {{ $criterion['name'] }}</td>
+                        <td style="border: none;" class="text-sm">{{ $avg !== null ? number_format((float) $avg, 2) : '-' }} / {{ $criterion['weight'] }}</td>
+                    </tr>
+                @endforeach
             </table>
         </div>
     @else
         <div style="padding: 40px; text-align: center; color: #9ca3af; border: 2px dashed #d1d5db; border-radius: 8px;">
             No evaluations have been submitted for this paper yet.
+        </div>
+    @endif
+
+    @if(count($pending) > 0)
+        <div class="no-page-break text-sm text-gray" style="margin-top: 15px; padding: 10px; border: 1px dashed #d1d5db; border-radius: 6px;">
+            <strong>Not yet submitted:</strong>
+            {{ implode(', ', array_column($pending, 'evaluator_name')) }}
         </div>
     @endif
 

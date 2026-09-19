@@ -91,6 +91,28 @@ Then, as admin, open **Evaluators** and set the track of every existing evaluato
 The frontend build is committed (`public/build/`), so `npm` is not needed on the server. Rebuild locally with
 `npm run build`, commit, push, then `git pull` on the server and re-sync `WEB/build/`.
 
+### Releasing the manuscript / PDF fixes (2026-09-19)
+
+```bash
+cd "$APP"
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force                        # adds papers.manuscript_path / manuscript_original_name
+php artisan optimize:clear && php artisan optimize
+rsync -a --delete "$APP/public/build/" "$WEB/build/"   # REQUIRED: the browser loads JS from WEB, not APP
+php artisan app:preflight
+```
+
+To confirm the deploy actually landed, compare the bundle the site serves with the one in Git:
+
+```bash
+curl -s https://icss-eshet-tabulation.pitonmain.com/login | grep -o 'build/assets/app-[A-Za-z0-9_-]*\.js'
+grep -o '"file": *"assets/app-[^"]*"' "$APP/public/build/manifest.json"
+```
+
+They must match. If the site still shows the branded "Error 500" page afterwards, the real exception is in
+`tail -n 80 "$APP/storage/logs/laravel.log"` - paste that, not the error page.
+
 ## 3. Every-page HTTP 500 while `php artisan` works
 
 `/up` answering 200 while `/` and `/login` answer 500 means Laravel boots but the **web** request fails before

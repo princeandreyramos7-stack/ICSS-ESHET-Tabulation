@@ -3,6 +3,7 @@ import { Head, router, useForm } from "@inertiajs/react";
 import { ExternalLink, FileText, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
+import ManuscriptDialog from "@/Components/ManuscriptDialog";
 import InputError from "@/Components/InputError";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -207,13 +208,11 @@ function PaperFormDialog({ open, onOpenChange, paper, tracks, defaultTrackId }) 
                                         <span className="text-sm font-medium">{paper.manuscript_name}</span>
                                     </div>
                                     <div className="flex gap-1">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => window.open(paper.manuscript_url, '_blank')}
-                                        >
-                                            View
+                                        <Button asChild type="button" variant="ghost" size="sm" className="gap-1">
+                                            <a href={paper.manuscript_url} target="_blank" rel="noopener noreferrer">
+                                                <ExternalLink className="size-3.5" />
+                                                View
+                                            </a>
                                         </Button>
                                         <Button
                                             type="button"
@@ -428,6 +427,7 @@ export default function Index({ papers, tracks, filters }) {
                                                         <span className="font-bold text-gray-900">{p.paper_no}</span>
                                                         {p.has_manuscript && (
                                                             <button
+                                                                type="button"
                                                                 onClick={() => setViewingManuscript(p)}
                                                                 title="View manuscript"
                                                                 className="text-emerald-600 hover:text-emerald-700"
@@ -502,47 +502,11 @@ export default function Index({ papers, tracks, filters }) {
                 processing={deleteProcessing}
                 onConfirm={confirmDelete}
             />
-                    {/* Manuscript Viewer Modal */}
-            {viewingManuscript && (
-                <Dialog open={Boolean(viewingManuscript)} onOpenChange={(open) => !open && setViewingManuscript(null)}>
-                    <DialogContent className="max-w-6xl h-[90vh] p-0">
-                        <DialogHeader className="px-6 py-4 border-b">
-                            <div className="flex items-center justify-between">
-                                <DialogTitle className="flex items-center gap-2">
-                                    <FileText className="size-5 text-emerald-600" />
-                                    Manuscript - Paper {viewingManuscript.paper_no}
-                                </DialogTitle>
-                                <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => window.open(viewingManuscript.manuscript_url, '_blank')}
-                                        className="gap-2"
-                                    >
-                                        <ExternalLink className="size-4" />
-                                        Open Full View
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setViewingManuscript(null)}
-                                    >
-                                        <X className="size-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogHeader>
-                        <div className="flex-1 overflow-hidden">
-                            <iframe
-                                src={viewingManuscript.manuscript_url}
-                                className="w-full h-full"
-                                title="Manuscript PDF"
-                            />
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            )}
-
-</AppLayout>
+            <ManuscriptDialog
+                paper={viewingManuscript}
+                open={Boolean(viewingManuscript)}
+                onOpenChange={(open) => !open && setViewingManuscript(null)}
+            />
+        </AppLayout>
     );
 }

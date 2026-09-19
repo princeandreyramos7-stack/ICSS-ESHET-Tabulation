@@ -51,18 +51,50 @@ class Paper extends Model
     }
 
     /**
-     * Check if paper has a manuscript uploaded
+     * Absolute filesystem path of the uploaded manuscript, or null when there is
+     * no upload or the file is not readable. Resolved from the disk root directly
+     * so serving never depends on Flysystem metadata calls.
      */
-    public function hasManuscript(): bool
+    public function manuscriptAbsolutePath(): ?string
     {
-        return !empty($this->manuscript_path) && Storage::exists($this->manuscript_path);
+        if (empty($this->manuscript_path)) {
+            return null;
+        }
+
+        try {
+            $path = Storage::path($this->manuscript_path);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_file($path) && is_readable($path) ? $path : null;
     }
 
-    /**
-     * Get the full URL to download/view the manuscript
-     */
+    public function hasManuscript(): bool
+    {
+        return $this->manuscriptAbsolutePath() !== null;
+    }
+
+    /** Name shown to users and used for downloads; always ends in .pdf. */
+    public function manuscriptDisplayName(): string
+    {
+        $name = trim((string) $this->manuscript_original_name);
+        if ($name === '') {
+            $name = 'Paper-' . $this->paper_no . '.pdf';
+        }
+
+        return str_ends_with(strtolower($name), '.pdf') ? $name : $name . '.pdf';
+    }
+
+    /** Inline view URL (iframe preview / full tab), null when nothing is uploaded. */
     public function getManuscriptUrlAttribute(): ?string
     {
         return $this->hasManuscript() ? route('manuscripts.show', $this->id) : null;
+    }
+
+    /** Forced-download URL, null when nothing is uploaded. */
+    public function getManuscriptDownloadUrlAttribute(): ?string
+    {
+        return $this->hasManuscript() ? route('manuscripts.download', $this->id) : null;
     }
 }

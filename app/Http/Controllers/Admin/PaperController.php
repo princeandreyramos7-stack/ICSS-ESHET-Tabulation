@@ -9,6 +9,7 @@ use App\Models\Track;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,8 +50,9 @@ class PaperController extends Controller
                 'presentation_order' => $p->presentation_order,
                 'evaluations_count' => $p->evaluations_count,
                 'has_manuscript' => $p->hasManuscript(),
-                'manuscript_name' => $p->manuscript_original_name,
+                'manuscript_name' => $p->hasManuscript() ? $p->manuscriptDisplayName() : null,
                 'manuscript_url' => $p->manuscript_url,
+                'manuscript_download_url' => $p->manuscript_download_url,
             ])->values(),
             'tracks' => Track::orderBy('number')->get(['id', 'number', 'name'])
                 ->map(fn ($t) => ['id' => $t->id, 'number' => $t->number, 'name' => $t->name, 'label' => $t->label]),
@@ -123,9 +125,9 @@ class PaperController extends Controller
         $file = $request->file('manuscript');
         $originalName = $file->getClientOriginalName();
         
-        // Generate unique filename: paper-{id}-{hash}.pdf
-        $hash = substr(md5($originalName . time()), 0, 8);
-        $filename = 'paper-' . ($data['paper_no'] ?? 'new') . '-' . $hash . '.pdf';
+        // Unique, filesystem-safe name: paper-{paper_no}-{hash}.pdf (paper_no is user input).
+        $hash = substr(md5($originalName . microtime(true)), 0, 8);
+        $filename = 'paper-' . Str::slug($data['paper_no'] ?? 'new') . '-' . $hash . '.pdf';
         
         // Store in track subdirectory
         $trackId = $data['track_id'];

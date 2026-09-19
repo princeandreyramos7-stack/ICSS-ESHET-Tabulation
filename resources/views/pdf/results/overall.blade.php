@@ -62,8 +62,8 @@
     @foreach($result['tracks'] as $track)
         <div class="no-page-break" style="margin-bottom: 25px;">
             <div style="background-color: #065f46; color: white; padding: 8px 12px; font-weight: bold; margin-bottom: 10px; border-radius: 4px;">
-                Track {{ $track['number'] }}: {{ $track['name'] }}
-                @if($track['locked'])
+                Track {{ $track['track']['number'] }}: {{ $track['track']['name'] }}
+                @if($track['track']['is_locked'])
                     <span class="badge" style="float: right; background-color: #fbbf24; color: #065f46;">LOCKED</span>
                 @endif
             </div>
@@ -98,7 +98,7 @@
                                     {{ $paper['average'] !== null ? number_format($paper['average'], 2) : '-' }}
                                 </td>
                                 <td class="text-center text-xs">
-                                    {{ $paper['evaluations_count'] }} / {{ $track['evaluator_count'] }}
+                                    {{ $paper['evaluations_count'] }} / {{ $track['evaluators_count'] }}
                                 </td>
                             </tr>
                         @endforeach

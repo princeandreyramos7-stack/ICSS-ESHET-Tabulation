@@ -272,7 +272,11 @@ class ResultService
         $leaderboard = $tracks->flatMap(function ($t) {
             return collect($t['papers'])
                 ->filter(fn ($p) => $p['average'] !== null)
-                ->map(fn ($p) => $p + ['track_number' => $t['track']['number'], 'track_name' => $t['track']['name']]);
+                ->map(fn ($p) => $p + [
+                    'track_number' => $t['track']['number'],
+                    'track_name' => $t['track']['name'],
+                    'track_locked' => (bool) $t['track']['is_locked'],
+                ]);
         });
 
         // Same comparator and competition ranking as within a track, applied across all tracks.

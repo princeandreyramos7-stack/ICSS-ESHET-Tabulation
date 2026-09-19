@@ -103,8 +103,12 @@ class ResultController extends Controller
             'name' => $paper->track->name,
             'label' => $paper->track->label,
         ];
-        
-        $pdf = Pdf::loadView('pdf.results.paper', ['result' => $result, 'track' => $track])
+
+        // Rank comes from the track sheet so the PDF agrees with what admins see on screen.
+        $rank = collect($results->forTrack($paper->track)['papers'])
+            ->firstWhere('id', $paper->id)['rank'] ?? null;
+
+        $pdf = Pdf::loadView('pdf.results.paper', ['result' => $result, 'track' => $track, 'rank' => $rank])
             ->setPaper('a4', 'portrait')
             ->setOption('margin-top', 10)
             ->setOption('margin-bottom', 10)

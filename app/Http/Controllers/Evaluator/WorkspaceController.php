@@ -49,6 +49,8 @@ class WorkspaceController extends Controller
                     'submitted_at' => $evaluation?->submitted_at?->toDateTimeString(),
                     'has_manuscript' => $paper->hasManuscript(),
                     'manuscript_url' => $paper->manuscript_url,
+                    'manuscript_download_url' => $paper->manuscript_download_url,
+                    'manuscript_name' => $paper->hasManuscript() ? $paper->manuscriptDisplayName() : null,
                     'evaluation' => $submitted ? [
                         'scores' => $evaluation->scores
                             ->mapWithKeys(fn ($s) => [$s->criterion_id => (float) $s->score])

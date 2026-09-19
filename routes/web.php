@@ -103,6 +103,7 @@ Route::middleware(['auth', 'role:' . User::ROLE_EVALUATOR])
 
 Route::middleware('auth')->group(function () {
     Route::get('manuscripts/{paper}', [ManuscriptController::class, 'show'])->name('manuscripts.show');
+    Route::get('manuscripts/{paper}/download', [ManuscriptController::class, 'download'])->name('manuscripts.download');
 });
 
 /*
