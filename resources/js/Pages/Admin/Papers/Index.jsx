@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Head, router, useForm } from "@inertiajs/react";
-import { FileText, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { ExternalLink, FileText, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import InputError from "@/Components/InputError";
@@ -9,11 +9,11 @@ import { Button } from "@/Components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/Components/ui/dialog";
+    DialogDescription,
+    DialogFooter,
+    } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Spinner } from "@/Components/ui/spinner";
@@ -294,6 +294,7 @@ export default function Index({ papers, tracks, filters }) {
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
+    const [viewingManuscript, setViewingManuscript] = useState(null);
     const [deleteProcessing, setDeleteProcessing] = useState(false);
 
     const visible = useMemo(() => {
@@ -427,7 +428,7 @@ export default function Index({ papers, tracks, filters }) {
                                                         <span className="font-bold text-gray-900">{p.paper_no}</span>
                                                         {p.has_manuscript && (
                                                             <button
-                                                                onClick={() => window.open(p.manuscript_url, '_blank')}
+                                                                onClick={() => setViewingManuscript(p)}
                                                                 title="View manuscript"
                                                                 className="text-emerald-600 hover:text-emerald-700"
                                                             >
@@ -501,6 +502,47 @@ export default function Index({ papers, tracks, filters }) {
                 processing={deleteProcessing}
                 onConfirm={confirmDelete}
             />
-        </AppLayout>
+                    {/* Manuscript Viewer Modal */}
+            {viewingManuscript && (
+                <Dialog open={Boolean(viewingManuscript)} onOpenChange={(open) => !open && setViewingManuscript(null)}>
+                    <DialogContent className="max-w-6xl h-[90vh] p-0">
+                        <DialogHeader className="px-6 py-4 border-b">
+                            <div className="flex items-center justify-between">
+                                <DialogTitle className="flex items-center gap-2">
+                                    <FileText className="size-5 text-emerald-600" />
+                                    Manuscript - Paper {viewingManuscript.paper_no}
+                                </DialogTitle>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(viewingManuscript.manuscript_url, '_blank')}
+                                        className="gap-2"
+                                    >
+                                        <ExternalLink className="size-4" />
+                                        Open Full View
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setViewingManuscript(null)}
+                                    >
+                                        <X className="size-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-hidden">
+                            <iframe
+                                src={viewingManuscript.manuscript_url}
+                                className="w-full h-full"
+                                title="Manuscript PDF"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+
+</AppLayout>
     );
 }

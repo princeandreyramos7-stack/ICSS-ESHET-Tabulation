@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "@inertiajs/react";
-import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 
 import ConfirmDialog from "@/Components/ConfirmDialog";
@@ -8,6 +8,7 @@ import InputError from "@/Components/InputError";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/Components/ui/dialog";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Spinner } from "@/Components/ui/spinner";
@@ -22,6 +23,7 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
     const locked = track.is_locked;
     const evaluation = paper.evaluation;
     const alreadySubmitted = paper.submitted;
+    const [manuscriptModalOpen, setManuscriptModalOpen] = useState(false);
 
     const initialScores = useMemo(() => {
         const scores = {};
@@ -43,8 +45,7 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
 
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [clientErrors, setClientErrors] = useState({});
-    // Status of the paper being opened, announced as a toast. A shared id means
-    // stepping quickly through papers replaces the notice instead of stacking.
+    
     useEffect(() => {
         if (locked) {
             toast.warning(`Track ${track.number} is locked. Ratings are read-only.`, {
@@ -71,15 +72,10 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
     );
     const maxTotal = useMemo(() => criteria.reduce((s, c) => s + c.weight, 0), [criteria]);
 
-    /**
-     * Hard input guard. Only digits with up to two decimals are accepted, and a
-     * value above the criterion's weight is clamped to that weight (typing "21"
-     * into a 20-point criterion yields "20" and a short notice).
-     */
     const setScore = (criterionId, rawValue, weight) => {
         let value = rawValue;
         if (value !== "") {
-            if (!/^\d*\.?\d{0,2}$/.test(value)) return; // ignore the keystroke
+            if (!/^\d*\.?\d{0,2}$/.test(value)) return;
             if (Number(value) > weight) {
                 value = String(weight);
                 toast.warning(`Maximum for this criterion is ${weight}.`, { id: `max-${criterionId}` });
@@ -95,7 +91,6 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
         }
     };
 
-    /** Validates locally before showing the confirmation dialog. */
     const validate = () => {
         const found = {};
         criteria.forEach((c) => {
@@ -175,7 +170,7 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => window.open(paper.manuscript_url, '_blank')}
+                                    onClick={() => setManuscriptModalOpen(true)}
                                     className="gap-2"
                                 >
                                     <FileText className="size-4" />
@@ -244,7 +239,6 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                                                     value={data.scores[c.id]}
                                                     onChange={(e) => setScore(c.id, e.target.value, c.weight)}
                                                     onKeyDown={(e) => {
-                                                        // Block characters a numeric field would otherwise accept.
                                                         if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
                                                     }}
                                                     onWheel={(e) => e.currentTarget.blur()}
@@ -330,6 +324,45 @@ export default function RubricForm({ paper, track, criteria, onDirtyChange, onPr
                     )}
                 </div>
             </form>
+
+            {/* Manuscript Viewer Modal */}
+            <Dialog open={manuscriptModalOpen} onOpenChange={setManuscriptModalOpen}>
+                <DialogContent className="max-w-6xl h-[90vh] p-0">
+                    <DialogHeader className="px-6 py-4 border-b">
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="flex items-center gap-2">
+                                <FileText className="size-5 text-emerald-600" />
+                                Manuscript - Paper {paper.paper_no}
+                            </DialogTitle>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => window.open(paper.manuscript_url, '_blank')}
+                                    className="gap-2"
+                                >
+                                    <ExternalLink className="size-4" />
+                                    Open Full View
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setManuscriptModalOpen(false)}
+                                >
+                                    <X className="size-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-hidden">
+                        <iframe
+                            src={paper.manuscript_url}
+                            className="w-full h-full"
+                            title="Manuscript PDF"
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <ConfirmDialog
                 open={confirmOpen}
